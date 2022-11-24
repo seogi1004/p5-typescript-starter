@@ -61,33 +61,47 @@ var PolygonHelper = (function () {
     };
     return PolygonHelper;
 }());
-var numberOfShapesControl;
-function setup() {
-    console.log("🚀 - Setup initialized - P5 is running");
-    createCanvas(windowWidth, windowHeight);
-    rectMode(CENTER).noFill().frameRate(30);
-    numberOfShapesControl = createSlider(1, 30, 15, 1).position(10, 10).style("width", "100px");
+var tiles = [];
+var grid = [];
+var DIM = 2;
+var _BLANK = 0;
+var _UP = 1;
+var _RIGHT = 2;
+var _DOWN = 3;
+var _LEFT = 4;
+function preload() {
+    tiles[0] = loadImage('../tiles/blank.png');
+    tiles[1] = loadImage('../tiles/up.png');
+    tiles[2] = loadImage('../tiles/right.png');
+    tiles[3] = loadImage('../tiles/down.png');
+    tiles[4] = loadImage('../tiles/left.png');
 }
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+function setup() {
+    createCanvas(400, 400);
+    for (var i = 0; i < DIM * DIM; i++) {
+        grid[i] = {
+            collapsed: false,
+            options: [_BLANK, _UP, _RIGHT, _DOWN, _LEFT]
+        };
+    }
 }
 function draw() {
     background(0);
-    translate(width / 2, height / 2);
-    var numberOfShapes = numberOfShapesControl.value();
-    var colours = ColorHelper.getColorsArray(numberOfShapes);
-    var speed = (frameCount / (numberOfShapes * 30)) * 2;
-    for (var i = 0; i < numberOfShapes; i++) {
-        push();
-        var lineWidth = 8;
-        var spin = speed * (numberOfShapes - i);
-        var numberOfSides = 3 + i;
-        var width_1 = 40 * i;
-        strokeWeight(lineWidth);
-        stroke(colours[i]);
-        rotate(spin);
-        PolygonHelper.draw(numberOfSides, width_1);
-        pop();
+    var w = width / DIM;
+    var h = height / DIM;
+    for (var j = 0; j < DIM; j++) {
+        for (var i = 0; i < DIM; i++) {
+            var cell = grid[i + (j * DIM)];
+            if (cell.collapsed) {
+                var index = cell.options[0];
+                image(tiles[index], i * w, j * h, w, h);
+            }
+            else {
+                fill(0);
+                stroke(255);
+                rect(i * w, j * h, w, h);
+            }
+        }
     }
 }
 //# sourceMappingURL=build.js.map

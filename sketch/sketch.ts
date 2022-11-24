@@ -1,47 +1,66 @@
+interface GridNode {
+  collapsed: boolean;
+  options: number[];
+}
+
 // GLOBAL VARS & TYPES
-let numberOfShapesControl: p5.Element;
+const tiles: p5.Image[] = [];
+const grid: GridNode[] = [];
 
-// P5 WILL AUTOMATICALLY USE GLOBAL MODE IF A DRAW() FUNCTION IS DEFINED
+const DIM = 2;
+const _BLANK = 0;
+const _UP = 1;
+const _RIGHT = 2;
+const _DOWN = 3;
+const _LEFT = 4;
+
+function preload() {
+  tiles[0] = loadImage('../tiles/blank.png')
+  tiles[1] = loadImage('../tiles/up.png')
+  tiles[2] = loadImage('../tiles/right.png')
+  tiles[3] = loadImage('../tiles/down.png')
+  tiles[4] = loadImage('../tiles/left.png')
+}
 function setup() {
-  console.log("🚀 - Setup initialized - P5 is running");
+  createCanvas(400, 400);
 
-  createCanvas(windowWidth, windowHeight)
-  rectMode(CENTER).noFill().frameRate(30);
-  // NUMBER OF SHAPES SLIDER
-  numberOfShapesControl = createSlider(1, 30, 15, 1).position(10, 10).style("width", "100px");
+  for (let i = 0; i < DIM * DIM; i++) {
+    grid[i] = {
+      collapsed: false,
+      options: [_BLANK, _UP, _RIGHT, _DOWN, _LEFT]
+    }
+  }
+
+  // grid[0].collapsed = true;
+  // grid[0].options = [_UP];
 }
 
-// p5 WILL AUTO RUN THIS FUNCTION IF THE BROWSER WINDOW SIZE CHANGES
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
-}
-
-// p5 WILL HANDLE REQUESTING ANIMATION FRAMES FROM THE BROWSER AND WIL RUN DRAW() EACH ANIMATION FROME
 function draw() {
-  
-   // CLEAR BACKGROUND
   background(0);
 
-  // CENTER OF SCREEN
-  translate(width / 2,height / 2);
+  const w = width / DIM;
+  const h = height / DIM;
 
-  const numberOfShapes = <number>numberOfShapesControl.value();
-  const colours = ColorHelper.getColorsArray(numberOfShapes);
+  for (let j = 0; j < DIM; j++) {
+    for (let i = 0; i < DIM; i++) {
+      // j=0, 0*2+0 = 0
+      // j=0, 0*2+1 = 1;
+      // j=1, 1*2+0 = 2;
+      // j=1, 1*2+1 = 3;
+      let cell = grid[i + (j * DIM)];
 
-  // CONSISTENT SPEED REGARDLESS OF FRAMERATE
-  const speed = (frameCount / (numberOfShapes * 30)) * 2;
-  
-  // DRAW ALL SHAPES
-  for (var i = 0; i < numberOfShapes; i++) {
-    push();
-      const lineWidth = 8;
-      const spin = speed * (numberOfShapes - i);
-      const numberOfSides = 3 + i;
-      const width = 40 * i;
-      strokeWeight(lineWidth); 
-      stroke(colours[i]);
-      rotate(spin);
-      PolygonHelper.draw(numberOfSides, width)
-    pop();
+      if (cell.collapsed) {
+        let index = cell.options[0];
+        image(tiles[index], i * w, j * h, w, h);
+      } else {
+        fill(0);
+        stroke(255);
+        rect(i * w, j * h, w, h);
+        // y=0, x=0
+        // y=0, x=200
+        // y=200, x=0
+        // y=200, x=200
+      }
+    }
   }
 }
