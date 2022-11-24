@@ -7,7 +7,7 @@ interface GridNode {
 const tiles: p5.Image[] = [];
 let grid: GridNode[] = [];
 
-const DIM = 8;
+const DIM = 2;
 
 const _BLANK = 0;
 const _UP = 1;
@@ -25,10 +25,10 @@ const rules = [
   ],
     // TOP
   [
-    [_RIGHT, _LEFT, _DOWN],
-    [_LEFT, _UP, _DOWN],
-    [_BLANK, _DOWN],
-    [_RIGHT, _UP, _DOWN],
+    [_RIGHT, _LEFT, _DOWN], // TOP
+    [_LEFT, _UP, _DOWN], // RIGHT
+    [_BLANK, _DOWN], // BOTTOM
+    [_RIGHT, _UP, _DOWN], // LEFT
   ],
     // RIGHT
   [
@@ -110,7 +110,7 @@ function draw() {
 
   if (stopIndex > 0) gridCopy.splice(stopIndex);
 
-  const cell = random(gridCopy);
+  const cell = gridCopy[0]
   cell.collapsed = true;
   const pick = random(cell.options);
   cell.options = [pick];
@@ -158,8 +158,10 @@ function draw() {
             let valid = rules[option][2];
             validOptions = validOptions.concat(valid);
           }
+          console.log('up', options.toString());
           checkValid(options, validOptions);
         }
+
         // RIGHT
         if (i < DIM - 1) {
           let right = grid[i + 1 + j * DIM];
@@ -167,6 +169,7 @@ function draw() {
             let valid = rules[option][3];
             validOptions = validOptions.concat(valid);
           }
+          console.log('right', options.toString());
           checkValid(options, validOptions);
         }
         // DOWN
@@ -176,6 +179,7 @@ function draw() {
             let valid = rules[option][0];
             validOptions = validOptions.concat(valid);
           }
+          console.log('down', options.toString());
           checkValid(options, validOptions);
         }
         // LEFT
@@ -185,6 +189,7 @@ function draw() {
             let valid = rules[option][1];
             validOptions = validOptions.concat(valid);
           }
+          console.log('left', options.toString());
           checkValid(options, validOptions);
         }
 
@@ -197,5 +202,5 @@ function draw() {
   }
 
   grid = nextGrid;
-  // noLoop();
+  noLoop();
 }

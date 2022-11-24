@@ -63,7 +63,7 @@ var PolygonHelper = (function () {
 }());
 var tiles = [];
 var grid = [];
-var DIM = 8;
+var DIM = 2;
 var _BLANK = 0;
 var _UP = 1;
 var _RIGHT = 2;
@@ -151,7 +151,7 @@ function draw() {
     }
     if (stopIndex > 0)
         gridCopy.splice(stopIndex);
-    var cell = random(gridCopy);
+    var cell = gridCopy[0];
     cell.collapsed = true;
     var pick = random(cell.options);
     cell.options = [pick];
@@ -188,6 +188,7 @@ function draw() {
                         var valid = rules[option][2];
                         validOptions = validOptions.concat(valid);
                     }
+                    console.log('up', options.toString());
                     checkValid(options, validOptions);
                 }
                 if (i < DIM - 1) {
@@ -197,6 +198,7 @@ function draw() {
                         var valid = rules[option][3];
                         validOptions = validOptions.concat(valid);
                     }
+                    console.log('right', options.toString());
                     checkValid(options, validOptions);
                 }
                 if (j < DIM - 1) {
@@ -206,6 +208,7 @@ function draw() {
                         var valid = rules[option][0];
                         validOptions = validOptions.concat(valid);
                     }
+                    console.log('down', options.toString());
                     checkValid(options, validOptions);
                 }
                 if (i > 0) {
@@ -215,6 +218,7 @@ function draw() {
                         var valid = rules[option][1];
                         validOptions = validOptions.concat(valid);
                     }
+                    console.log('left', options.toString());
                     checkValid(options, validOptions);
                 }
                 nextGrid[index] = {
@@ -225,5 +229,6 @@ function draw() {
         }
     }
     grid = nextGrid;
+    noLoop();
 }
 //# sourceMappingURL=build.js.map
