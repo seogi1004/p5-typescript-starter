@@ -63,7 +63,7 @@ var PolygonHelper = (function () {
 }());
 var tiles = [];
 var grid = [];
-var DIM = 8;
+var DIM = 16;
 var _BLANK = 0;
 var _UP = 1;
 var _RIGHT = 2;

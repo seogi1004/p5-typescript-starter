@@ -7,7 +7,7 @@ interface GridNode {
 const tiles: p5.Image[] = [];
 let grid: GridNode[] = [];
 
-const DIM = 8;
+const DIM = 16;
 
 const _BLANK = 0;
 const _UP = 1;
