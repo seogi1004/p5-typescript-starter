@@ -7,7 +7,7 @@ interface GridNode {
 const tiles: p5.Image[] = [];
 let grid: GridNode[] = [];
 
-const DIM = 16;
+const DIM = 8;
 
 const _BLANK = 0;
 const _UP = 1;
@@ -16,30 +16,35 @@ const _DOWN = 3;
 const _LEFT = 4;
 
 const rules = [
+    // BLANK
   [
     [_BLANK, _UP],
     [_BLANK, _RIGHT],
     [_BLANK, _DOWN],
     [_BLANK, _LEFT],
   ],
+    // TOP
   [
     [_RIGHT, _LEFT, _DOWN],
     [_LEFT, _UP, _DOWN],
     [_BLANK, _DOWN],
     [_RIGHT, _UP, _DOWN],
   ],
+    // RIGHT
   [
     [_RIGHT, _LEFT, _DOWN],
     [_LEFT, _UP, _DOWN],
     [_RIGHT, _LEFT, _UP],
     [_BLANK, _LEFT],
   ],
+    // BOTTOM
   [
     [_BLANK, _UP],
     [_LEFT, _UP, _DOWN],
     [_RIGHT, _LEFT, _UP],
     [_RIGHT, _UP, _DOWN],
   ],
+    // LEFT
   [
     [_RIGHT, _LEFT, _DOWN],
     [_BLANK, _RIGHT],
@@ -64,11 +69,6 @@ function setup() {
       options: [_BLANK, _UP, _RIGHT, _DOWN, _LEFT]
     }
   }
-
-  // grid[0].collapsed = true;
-  // grid[0].options = [_UP];
-  // grid[2].options = [_BLANK, _UP];
-  // grid[0].options = [_BLANK, _UP];
 }
 
 function checkValid(arr: number[], valid: number[]) {
@@ -173,7 +173,7 @@ function draw() {
         if (j < DIM - 1) {
           let down = grid[i + (j + 1) * DIM];
           for(let option of down.options) {
-            let valid = rules[option][3];
+            let valid = rules[option][0];
             validOptions = validOptions.concat(valid);
           }
           checkValid(options, validOptions);
@@ -182,7 +182,7 @@ function draw() {
         if (i > 0) {
           let left = grid[i - 1 + j * DIM];
           for(let option of left.options) {
-            let valid = rules[option][3];
+            let valid = rules[option][1];
             validOptions = validOptions.concat(valid);
           }
           checkValid(options, validOptions);

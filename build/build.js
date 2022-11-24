@@ -63,7 +63,7 @@ var PolygonHelper = (function () {
 }());
 var tiles = [];
 var grid = [];
-var DIM = 16;
+var DIM = 8;
 var _BLANK = 0;
 var _UP = 1;
 var _RIGHT = 2;
@@ -203,7 +203,7 @@ function draw() {
                     var down = grid[i + (j + 1) * DIM];
                     for (var _d = 0, _e = down.options; _d < _e.length; _d++) {
                         var option = _e[_d];
-                        var valid = rules[option][3];
+                        var valid = rules[option][0];
                         validOptions = validOptions.concat(valid);
                     }
                     checkValid(options, validOptions);
@@ -212,7 +212,7 @@ function draw() {
                     var left = grid[i - 1 + j * DIM];
                     for (var _f = 0, _g = left.options; _f < _g.length; _f++) {
                         var option = _g[_f];
-                        var valid = rules[option][3];
+                        var valid = rules[option][1];
                         validOptions = validOptions.concat(valid);
                     }
                     checkValid(options, validOptions);
