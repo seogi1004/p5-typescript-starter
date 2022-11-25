@@ -4,10 +4,11 @@ interface GridNode {
 }
 
 // GLOBAL VARS & TYPES
-const tiles: p5.Image[] = [];
+const tiles: Tile[] = [];
+const tileImages: p5.Image[] = [];
 let grid: GridNode[] = [];
 
-const DIM = 16;
+const DIM = 2;
 
 const _BLANK = 0;
 const _UP = 1;
@@ -53,14 +54,17 @@ const rules = [
 ];
 
 function preload() {
-    tiles[0] = loadImage('../tiles/blank.png');
-    tiles[1] = loadImage('../tiles/up.png');
-    tiles[2] = loadImage('../tiles/right.png');
-    tiles[3] = loadImage('../tiles/down.png');
-    tiles[4] = loadImage('../tiles/left.png');
+    tileImages[0] = loadImage('../tiles/blank.png');
+    tileImages[1] = loadImage('../tiles/up.png');
 }
 function setup() {
     createCanvas(400, 400);
+
+    tiles[0] = new Tile(tileImages[0], [0, 0, 0, 0]);
+    tiles[1] = new Tile(tileImages[0], [1, 1, 0, 1]);
+    tiles[2] = tiles[1].rotate(1);
+    tiles[3] = tiles[1].rotate(2);
+    tiles[4] = tiles[1].rotate(3);
 
     for (let i = 0; i < DIM * DIM; i++) {
         grid[i] = {
@@ -127,7 +131,7 @@ function draw() {
 
             if (cell.collapsed) {
                 let index = cell.options[0];
-                image(tiles[index], i * w, j * h, w, h);
+                image(tiles[index].img, i * w, j * h, w, h);
             } else {
                 fill(0);
                 stroke(255);
