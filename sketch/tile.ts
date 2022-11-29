@@ -19,7 +19,6 @@ class Tile {
 
         const newEdges = this.edges.slice();
         const moveEdges = newEdges.splice(0, this.edges.length - num);
-
         return new Tile(newImg, newEdges.concat(moveEdges));
     }
 }

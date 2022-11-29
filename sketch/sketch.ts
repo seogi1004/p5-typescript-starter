@@ -60,8 +60,13 @@ function preload() {
 function setup() {
     createCanvas(400, 400);
 
-    tiles[0] = new Tile(tileImages[0], [0, 0, 0, 0]);
-    tiles[1] = new Tile(tileImages[1], [1, 1, 0, 1]);
+    const tile1 = createGraphics(tileImages[0].width, tileImages[0].height);
+    tile1.image(tileImages[0], 0, 0);
+    const tile2 = createGraphics(tileImages[1].width, tileImages[1].height);
+    tile2.image(tileImages[1], 0, 0);
+
+    tiles[0] = new Tile(tile1, [0, 0, 0, 0]);
+    tiles[1] = new Tile(tile2, [1, 1, 0, 1]);
     tiles[2] = tiles[1].rotate(1);
     tiles[3] = tiles[1].rotate(2);
     tiles[4] = tiles[1].rotate(3);
