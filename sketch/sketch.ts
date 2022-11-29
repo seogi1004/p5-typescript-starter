@@ -61,7 +61,7 @@ function setup() {
     createCanvas(400, 400);
 
     tiles[0] = new Tile(tileImages[0], [0, 0, 0, 0]);
-    tiles[1] = new Tile(tileImages[0], [1, 1, 0, 1]);
+    tiles[1] = new Tile(tileImages[1], [1, 1, 0, 1]);
     tiles[2] = tiles[1].rotate(1);
     tiles[3] = tiles[1].rotate(2);
     tiles[4] = tiles[1].rotate(3);
