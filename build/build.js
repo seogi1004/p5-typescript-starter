@@ -61,33 +61,35 @@ var PolygonHelper = (function () {
     };
     return PolygonHelper;
 }());
-var numberOfShapesControl;
+var density = 'N@#W$9876543210?!abc;:+=-,._ ';
+var gloria;
+function preload() {
+    gloria = loadImage('./asset/dog4.png');
+}
 function setup() {
-    console.log("🚀 - Setup initialized - P5 is running");
-    createCanvas(windowWidth, windowHeight);
-    rectMode(CENTER).noFill().frameRate(30);
-    numberOfShapesControl = createSlider(1, 30, 15, 1).position(10, 10).style("width", "100px");
-}
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
-}
-function draw() {
-    background(0);
-    translate(width / 2, height / 2);
-    var numberOfShapes = numberOfShapesControl.value();
-    var colours = ColorHelper.getColorsArray(numberOfShapes);
-    var speed = (frameCount / (numberOfShapes * 30)) * 2;
-    for (var i = 0; i < numberOfShapes; i++) {
-        push();
-        var lineWidth = 8;
-        var spin = speed * (numberOfShapes - i);
-        var numberOfSides = 3 + i;
-        var width_1 = 40 * i;
-        strokeWeight(lineWidth);
-        stroke(colours[i]);
-        rotate(spin);
-        PolygonHelper.draw(numberOfSides, width_1);
-        pop();
+    noCanvas();
+    var w = width / gloria.width;
+    var h = height / gloria.height;
+    gloria.loadPixels();
+    var asciiImage = '';
+    var asciiDiv = createDiv();
+    for (var j = 0; j < gloria.width; j++) {
+        for (var i = 0; i < gloria.height; i++) {
+            var pixelIndex = (i + j * gloria.width) * 4;
+            var r = gloria.pixels[pixelIndex + 0];
+            var g = gloria.pixels[pixelIndex + 1];
+            var b = gloria.pixels[pixelIndex + 2];
+            var avg = (r + g + b) / 3;
+            var len = density.length;
+            var charIndex = floor(map(avg, 0, 255, len, 0));
+            var c = density.charAt(charIndex);
+            if (c === '')
+                asciiImage += '&nbsp;';
+            else
+                asciiImage += c;
+        }
+        asciiImage += '<br/>';
     }
+    asciiDiv.html(asciiImage);
 }
 //# sourceMappingURL=build.js.map

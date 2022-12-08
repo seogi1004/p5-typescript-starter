@@ -1,48 +1,46 @@
-// GLOBAL VARS & TYPES
-let numberOfShapesControl: p5.Element
+const density = 'N@#W$9876543210?!abc;:+=-,._ ';
 
-// P5 WILL AUTOMATICALLY USE GLOBAL MODE IF A DRAW() FUNCTION IS DEFINED
+let gloria: p5.Image;
+
+function preload() {
+    gloria = loadImage('./asset/dog4.png');
+}
+
 function setup() {
-    console.log('🚀 - Setup initialized - P5 is running')
+    // createCanvas(400, 400)
+    noCanvas();
+    // background(0);
+    // image(gloria, 0, 0, width, height);
 
-    createCanvas(windowWidth, windowHeight)
-    rectMode(CENTER).noFill().frameRate(30)
-    // NUMBER OF SHAPES SLIDER
-    numberOfShapesControl = createSlider(1, 30, 15, 1)
-        .position(10, 10)
-        .style('width', '100px')
-}
+    let w = width / gloria.width;
+    let h = height / gloria.height;
+    gloria.loadPixels();
 
-// p5 WILL AUTO RUN THIS FUNCTION IF THE BROWSER WINDOW SIZE CHANGES
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight)
-}
+    let asciiImage = '';
+    let asciiDiv = createDiv();
+    for (let j = 0; j < gloria.width; j++) {
+        for (let i = 0; i < gloria.height; i++) {
+            const pixelIndex = (i + j * gloria.width) * 4;
+            const r = gloria.pixels[pixelIndex + 0];
+            const g = gloria.pixels[pixelIndex + 1];
+            const b = gloria.pixels[pixelIndex + 2];
+            const avg = (r + g + b) / 3;
+            const len = density.length;
+            const charIndex = floor(map(avg, 0, 255, len, 0));
 
-// p5 WILL HANDLE REQUESTING ANIMATION FRAMES FROM THE BROWSER AND WIL RUN DRAW() EACH ANIMATION FROME
-function draw() {
-    // CLEAR BACKGROUND
-    background(0)
+            const c = density.charAt(charIndex);
+            if (c === '') asciiImage += '&nbsp;';
+            else asciiImage += c;
 
-    // CENTER OF SCREEN
-    translate(width / 2, height / 2)
-
-    const numberOfShapes = <number>numberOfShapesControl.value()
-    const colours = ColorHelper.getColorsArray(numberOfShapes)
-
-    // CONSISTENT SPEED REGARDLESS OF FRAMERATE
-    const speed = (frameCount / (numberOfShapes * 30)) * 2
-
-    // DRAW ALL SHAPES
-    for (var i = 0; i < numberOfShapes; i++) {
-        push()
-        const lineWidth = 8
-        const spin = speed * (numberOfShapes - i)
-        const numberOfSides = 3 + i
-        const width = 40 * i
-        strokeWeight(lineWidth)
-        stroke(colours[i])
-        rotate(spin)
-        PolygonHelper.draw(numberOfSides, width)
-        pop()
+            // noStroke();
+            // fill(avg);
+            // square(i * w, j * h, w);
+            // textSize(w);
+            // textAlign(CENTER, CENTER);
+            // text('G', i * w + w * 0.5, j * h + h * 0.5)
+        }
+        asciiImage += '<br/>';
     }
+
+    asciiDiv.html(asciiImage);
 }
