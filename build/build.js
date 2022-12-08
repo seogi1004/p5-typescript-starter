@@ -64,7 +64,7 @@ var PolygonHelper = (function () {
 var density = 'N@#W$9876543210?!abc;:+=-,._ ';
 var gloria;
 function preload() {
-    gloria = loadImage('./asset/dog4.png');
+    gloria = loadImage('./asset/gloria48.jpg');
 }
 function setup() {
     noCanvas();
