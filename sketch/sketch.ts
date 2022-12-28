@@ -1,48 +1,77 @@
-// GLOBAL VARS & TYPES
-let numberOfShapesControl: p5.Element
+var circles: Circle[];
 
-// P5 WILL AUTOMATICALLY USE GLOBAL MODE IF A DRAW() FUNCTION IS DEFINED
 function setup() {
-    console.log('🚀 - Setup initialized - P5 is running')
-
-    createCanvas(windowWidth, windowHeight)
-    rectMode(CENTER).noFill().frameRate(30)
-    // NUMBER OF SHAPES SLIDER
-    numberOfShapesControl = createSlider(1, 30, 15, 1)
-        .position(10, 10)
-        .style('width', '100px')
+    createCanvas(640, 360);
+    circles = [];
 }
 
-// p5 WILL AUTO RUN THIS FUNCTION IF THE BROWSER WINDOW SIZE CHANGES
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight)
-}
-
-// p5 WILL HANDLE REQUESTING ANIMATION FRAMES FROM THE BROWSER AND WIL RUN DRAW() EACH ANIMATION FROME
 function draw() {
-    // CLEAR BACKGROUND
-    background(0)
+    background(0);
+    // frameRate(5);
 
-    // CENTER OF SCREEN
-    translate(width / 2, height / 2)
+    const total = 10;
+    let count = 0;
+    let attempts = 0;
 
-    const numberOfShapes = <number>numberOfShapesControl.value()
-    const colours = ColorHelper.getColorsArray(numberOfShapes)
-
-    // CONSISTENT SPEED REGARDLESS OF FRAMERATE
-    const speed = (frameCount / (numberOfShapes * 30)) * 2
-
-    // DRAW ALL SHAPES
-    for (var i = 0; i < numberOfShapes; i++) {
-        push()
-        const lineWidth = 8
-        const spin = speed * (numberOfShapes - i)
-        const numberOfSides = 3 + i
-        const width = 40 * i
-        strokeWeight(lineWidth)
-        stroke(colours[i])
-        rotate(spin)
-        PolygonHelper.draw(numberOfSides, width)
-        pop()
+    while (count < total) {
+        const newC = newCircle();
+        if (newC !== null) {
+            circles.push(newC);
+            count++;
+        }
+        attempts++;
+        if (attempts > 1000) {
+            noLoop();
+            console.log('FINISHED');
+            break;
+        }
     }
+
+    circles.forEach((c) => {
+        if (c.growing) {
+            if (c.edges()) {
+                c.growing = false;
+            } else {
+                for (let i = 0; i < circles.length; i++) {
+                    const other = circles[i];
+                    if (c !== other) {
+                        const d = newDist(c.x, c.y, other.x, other.y);
+                        if (d - 2 < c.r + other.r) {
+                            c.growing = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        c.show();
+        c.grow();
+    });
+}
+
+function newCircle() {
+    const x = Math.random() * width;
+    const y = Math.random() * height;
+
+    let valid = true;
+    for (let i = 0; i < circles.length; i++) {
+        const c = circles[i];
+        const d = newDist(x, y, c.x, c.y);
+        if (d < c.r) {
+            valid = false;
+            break;
+        }
+    }
+
+    if (valid) {
+        return new Circle(x, y);
+    } else {
+        return null;
+    }
+}
+
+function newDist(x1: number, y1: number, x2: number, y2: number) {
+    const a = x1 - x2;
+    const b = y1 - y2;
+    return Math.sqrt(a * a + b * b);
 }
