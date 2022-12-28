@@ -1,15 +1,31 @@
 var circles: Circle[];
+var spots: [number, number][];
 
 function setup() {
-    createCanvas(640, 360);
     circles = [];
+    spots = [];
+
+    loadImage('../data/2022.png', (img) => {
+        createCanvas(img.width, img.height);
+        img.loadPixels();
+
+        for (let x = 0; x < img.width; x++) {
+            for (let y = 0; y < img.height; y++) {
+                const index = x + y * img.width;
+                const c = img.pixels[index * 4];
+                const b = brightness([c]);
+                if (b > 1) {
+                    spots.push([x, y]);
+                }
+            }
+        }
+    });
 }
 
 function draw() {
     background(0);
-    // frameRate(5);
 
-    const total = 10;
+    const total = 5;
     let count = 0;
     let attempts = 0;
 
@@ -36,7 +52,7 @@ function draw() {
                     const other = circles[i];
                     if (c !== other) {
                         const d = newDist(c.x, c.y, other.x, other.y);
-                        if (d - 2 < c.r + other.r) {
+                        if (d < c.r + other.r) {
                             c.growing = false;
                             break;
                         }
@@ -50,14 +66,17 @@ function draw() {
 }
 
 function newCircle() {
-    const x = Math.random() * width;
-    const y = Math.random() * height;
+    const r = Math.floor(Math.random() * spots.length);
+    const spot = spots[r];
+
+    const x = spot[0];
+    const y = spot[1];
 
     let valid = true;
     for (let i = 0; i < circles.length; i++) {
         const c = circles[i];
         const d = newDist(x, y, c.x, c.y);
-        if (d < c.r) {
+        if (d < c.r + 2) {
             valid = false;
             break;
         }
