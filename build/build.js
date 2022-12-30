@@ -31,13 +31,14 @@ function setup() {
         img = newImg;
         createCanvas(img.width, img.height);
         img.loadPixels();
+        console.log(img.pixels.slice(0, 16));
     });
 }
 function draw() {
     if (img === undefined)
         return;
     background(0);
-    var total = 10;
+    var total = 30;
     var count = 0;
     var attempts = 0;
     while (count < total) {
@@ -88,8 +89,12 @@ function newCircle() {
         }
     }
     if (valid) {
-        var index = x + y * img.width;
-        return new Circle(x, y, color(img.pixels[index], img.pixels[index + 1], img.pixels[index + 2], img.pixels[index + 3]));
+        var index = (x + y * img.width) * 4;
+        var r = img.pixels[index];
+        var g = img.pixels[index + 1];
+        var b = img.pixels[index + 2];
+        var a = img.pixels[index + 3];
+        return new Circle(x, y, color(r, g, b, a));
     }
     else {
         return null;

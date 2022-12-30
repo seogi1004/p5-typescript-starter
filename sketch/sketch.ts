@@ -8,6 +8,8 @@ function setup() {
         img = newImg;
         createCanvas(img.width, img.height);
         img.loadPixels();
+
+        console.log(img.pixels.slice(0, 16));
     });
 }
 
@@ -16,7 +18,7 @@ function draw() {
 
     background(0);
 
-    const total = 10;
+    const total = 30;
     let count = 0;
     let attempts = 0;
 
@@ -71,9 +73,13 @@ function newCircle() {
     }
 
     if (valid) {
-        const index = x + y * img.width;
+        const index = (x + y * img.width) * 4;
+        const r = img.pixels[index];
+        const g = img.pixels[index + 1];
+        const b = img.pixels[index + 2];
+        const a = img.pixels[index + 3];
         return new Circle(x, y,
-            color(img.pixels[index], img.pixels[index + 1], img.pixels[index + 2], img.pixels[index + 3])
+            color(r, g, b, a)
         );
     } else {
         return null;
