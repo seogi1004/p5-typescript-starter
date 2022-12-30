@@ -1,31 +1,22 @@
-var circles: Circle[];
-var spots: [number, number][];
+let circles: Circle[];
+let img: p5.Image;
 
 function setup() {
     circles = [];
-    spots = [];
 
-    loadImage('../data/2022.png', (img) => {
+    loadImage('../data/kitten.jpeg', (newImg: p5.Image) => {
+        img = newImg;
         createCanvas(img.width, img.height);
         img.loadPixels();
-
-        for (let x = 0; x < img.width; x++) {
-            for (let y = 0; y < img.height; y++) {
-                const index = x + y * img.width;
-                const c = img.pixels[index * 4];
-                const b = brightness([c]);
-                if (b > 1) {
-                    spots.push([x, y]);
-                }
-            }
-        }
     });
 }
 
 function draw() {
+    if (img === undefined) return;
+
     background(0);
 
-    const total = 5;
+    const total = 10;
     let count = 0;
     let attempts = 0;
 
@@ -66,11 +57,8 @@ function draw() {
 }
 
 function newCircle() {
-    const r = Math.floor(Math.random() * spots.length);
-    const spot = spots[r];
-
-    const x = spot[0];
-    const y = spot[1];
+    const x = Math.floor(Math.random() * width);
+    const y = Math.floor(Math.random() * height);
 
     let valid = true;
     for (let i = 0; i < circles.length; i++) {
@@ -83,7 +71,10 @@ function newCircle() {
     }
 
     if (valid) {
-        return new Circle(x, y);
+        const index = x + y * img.width;
+        return new Circle(x, y,
+            color(img.pixels[index], img.pixels[index + 1], img.pixels[index + 2], img.pixels[index + 3])
+        );
     } else {
         return null;
     }

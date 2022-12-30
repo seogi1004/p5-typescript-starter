@@ -1,93 +1,103 @@
-var ColorHelper = (function () {
-    function ColorHelper() {
+var Circle = (function () {
+    function Circle(x_, y_, c_) {
+        this.growing = true;
+        this.x = x_;
+        this.y = y_;
+        this.c = c_;
+        this.r = 1;
     }
-    ColorHelper.getColorVector = function (c) {
-        return createVector(red(c), green(c), blue(c));
-    };
-    ColorHelper.rainbowColorBase = function () {
-        return [
-            color('red'),
-            color('orange'),
-            color('yellow'),
-            color('green'),
-            color(38, 58, 150),
-            color('indigo'),
-            color('violet')
-        ];
-    };
-    ColorHelper.getColorsArray = function (total, baseColorArray) {
-        var _this = this;
-        if (baseColorArray === void 0) { baseColorArray = null; }
-        if (baseColorArray == null) {
-            baseColorArray = ColorHelper.rainbowColorBase();
+    Circle.prototype.grow = function () {
+        var _a = this, r = _a.r, growing = _a.growing;
+        if (growing) {
+            this.r = r + 0.5;
         }
-        var rainbowColors = baseColorArray.map(function (x) { return _this.getColorVector(x); });
-        ;
-        var colours = new Array();
-        for (var i = 0; i < total; i++) {
-            var colorPosition = i / total;
-            var scaledColorPosition = colorPosition * (rainbowColors.length - 1);
-            var colorIndex = Math.floor(scaledColorPosition);
-            var colorPercentage = scaledColorPosition - colorIndex;
-            var nameColor = this.getColorByPercentage(rainbowColors[colorIndex], rainbowColors[colorIndex + 1], colorPercentage);
-            colours.push(color(nameColor.x, nameColor.y, nameColor.z));
-        }
-        return colours;
     };
-    ColorHelper.getColorByPercentage = function (firstColor, secondColor, percentage) {
-        var firstColorCopy = firstColor.copy();
-        var secondColorCopy = secondColor.copy();
-        var deltaColor = secondColorCopy.sub(firstColorCopy);
-        var scaledDeltaColor = deltaColor.mult(percentage);
-        return firstColorCopy.add(scaledDeltaColor);
+    Circle.prototype.edges = function () {
+        var _a = this, x = _a.x, y = _a.y, r = _a.r;
+        return x + r > width || x - r < 0 || y + r > height || y - r < 0;
     };
-    return ColorHelper;
+    Circle.prototype.show = function () {
+        var _a = this, x = _a.x, y = _a.y, c = _a.c, r = _a.r;
+        fill(c);
+        ellipse(x, y, r * 2, r * 2);
+    };
+    return Circle;
 }());
-var PolygonHelper = (function () {
-    function PolygonHelper() {
-    }
-    PolygonHelper.draw = function (numberOfSides, width) {
-        push();
-        var angle = TWO_PI / numberOfSides;
-        var radius = width / 2;
-        beginShape();
-        for (var a = 0; a < TWO_PI; a += angle) {
-            var sx = cos(a) * radius;
-            var sy = sin(a) * radius;
-            vertex(sx, sy);
-        }
-        endShape(CLOSE);
-        pop();
-    };
-    return PolygonHelper;
-}());
-var numberOfShapesControl;
+var circles;
+var img;
 function setup() {
-    console.log("🚀 - Setup initialized - P5 is running");
-    createCanvas(windowWidth, windowHeight);
-    rectMode(CENTER).noFill().frameRate(30);
-    numberOfShapesControl = createSlider(1, 30, 15, 1).position(10, 10).style("width", "100px");
-}
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+    circles = [];
+    loadImage('../data/kitten.jpeg', function (newImg) {
+        img = newImg;
+        createCanvas(img.width, img.height);
+        img.loadPixels();
+    });
 }
 function draw() {
+    if (img === undefined)
+        return;
     background(0);
-    translate(width / 2, height / 2);
-    var numberOfShapes = numberOfShapesControl.value();
-    var colours = ColorHelper.getColorsArray(numberOfShapes);
-    var speed = (frameCount / (numberOfShapes * 30)) * 2;
-    for (var i = 0; i < numberOfShapes; i++) {
-        push();
-        var lineWidth = 8;
-        var spin = speed * (numberOfShapes - i);
-        var numberOfSides = 3 + i;
-        var width_1 = 40 * i;
-        strokeWeight(lineWidth);
-        stroke(colours[i]);
-        rotate(spin);
-        PolygonHelper.draw(numberOfSides, width_1);
-        pop();
+    var total = 10;
+    var count = 0;
+    var attempts = 0;
+    while (count < total) {
+        var newC = newCircle();
+        if (newC !== null) {
+            circles.push(newC);
+            count++;
+        }
+        attempts++;
+        if (attempts > 1000) {
+            noLoop();
+            console.log('FINISHED');
+            break;
+        }
     }
+    circles.forEach(function (c) {
+        if (c.growing) {
+            if (c.edges()) {
+                c.growing = false;
+            }
+            else {
+                for (var i = 0; i < circles.length; i++) {
+                    var other = circles[i];
+                    if (c !== other) {
+                        var d = newDist(c.x, c.y, other.x, other.y);
+                        if (d < c.r + other.r) {
+                            c.growing = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        c.show();
+        c.grow();
+    });
+}
+function newCircle() {
+    var x = Math.floor(Math.random() * width);
+    var y = Math.floor(Math.random() * height);
+    var valid = true;
+    for (var i = 0; i < circles.length; i++) {
+        var c = circles[i];
+        var d = newDist(x, y, c.x, c.y);
+        if (d < c.r + 2) {
+            valid = false;
+            break;
+        }
+    }
+    if (valid) {
+        var index = x + y * img.width;
+        return new Circle(x, y, color(img.pixels[index], img.pixels[index + 1], img.pixels[index + 2], img.pixels[index + 3]));
+    }
+    else {
+        return null;
+    }
+}
+function newDist(x1, y1, x2, y2) {
+    var a = x1 - x2;
+    var b = y1 - y2;
+    return Math.sqrt(a * a + b * b);
 }
 //# sourceMappingURL=build.js.map
