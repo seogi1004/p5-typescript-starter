@@ -1,6 +1,6 @@
 // GLOBAL VARS & TYPES
-const cols = 25;
-const rows = 25;
+const cols = 100;
+const rows = 100;
 const grid = new Array(cols);
 let w: number;
 let h: number;
@@ -19,6 +19,7 @@ class Spot {
     h: number;
     neighbors: Spot[];
     previous: Spot;
+    wall: boolean;
 
     constructor(i: number, j: number) {
         this.i = i;
@@ -28,11 +29,19 @@ class Spot {
         this.h = 0;
         this.neighbors = [];
         this.previous = undefined;
+        this.wall = false;
+
+        if (random(1) < 0.3) {
+            this.wall = true;
+        }
     }
 
     show(color: p5.Color): void {
         const { i, j } = this;
         fill(color);
+        if (this.wall) {
+            fill(0);
+        }
         noStroke();
         rect(i * w, j * h, w - 1, h - 1);
     }
@@ -43,6 +52,12 @@ class Spot {
         if (i > 0) this.neighbors.push(grid[i - 1][j]);
         if (j < rows - 1) this.neighbors.push(grid[i][j + 1]);
         if (j > 0) this.neighbors.push(grid[i][j - 1]);
+
+        if (i > 0 && j > 0) this.neighbors.push(grid[i - 1][j - 1]);
+        if (i < cols - 1 && j > 0) this.neighbors.push(grid[i + 1][j - 1]);
+        if (i > 0 && j < rows - 1) this.neighbors.push(grid[i - 1][j + 1]);
+        if (i < cols - 1 && j < rows - 1)
+            this.neighbors.push(grid[i + 1][j + 1]);
     }
 }
 
@@ -55,14 +70,14 @@ function removeFromArray(arr: Spot[], elt: Spot) {
 }
 
 function heuristic(a: Spot, b: Spot) {
-    // const d = dist(a.i, a.j, b.i, b.j);
-    const d = abs(a.i - b.i) - abs(a.j - b.j);
+    const d = dist(a.i, a.j, b.i, b.j);
+    // const d = abs(a.i - b.i) - abs(a.j - b.j);
     return d;
 }
 
 // P5 WILL AUTOMATICALLY USE GLOBAL MODE IF A DRAW() FUNCTION IS DEFINED
 function setup() {
-    createCanvas(400, 400);
+    createCanvas(800, 800);
 
     w = width / cols;
     h = height / rows;
@@ -85,6 +100,8 @@ function setup() {
 
     start = grid[0][0];
     end = grid[cols - 1][rows - 1];
+    start.wall = false;
+    end.wall = false;
     openSet.push(start);
 
     console.log(grid);
@@ -113,21 +130,26 @@ function draw() {
         for (let i = 0; i < neighbors.length; i++) {
             const neighbor = neighbors[i];
 
-            if (closedSet.indexOf(neighbor) === -1) {
+            if (closedSet.indexOf(neighbor) === -1 && !neighbor.wall) {
                 const tempG = current.g + 1;
+                let newPath = false;
 
                 if (openSet.indexOf(neighbor) !== -1) {
                     if (tempG < neighbor.g) {
                         neighbor.g = tempG;
+                        newPath = true;
                     }
                 } else {
                     neighbor.g = tempG;
+                    newPath = true;
                     openSet.push(neighbor);
                 }
 
-                neighbor.h = heuristic(neighbor, end);
-                neighbor.f = neighbor.g + neighbor.h;
-                neighbor.previous = current;
+                if (newPath) {
+                    neighbor.h = heuristic(neighbor, end);
+                    neighbor.f = neighbor.g + neighbor.h;
+                    neighbor.previous = current;
+                }
             }
         }
         background(0);
@@ -159,5 +181,8 @@ function draw() {
         }
     } else {
         // TODO: no solution
+        console.log('no solution');
+        noLoop();
+        return;
     }
 }
