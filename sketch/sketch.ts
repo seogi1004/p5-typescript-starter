@@ -1,6 +1,6 @@
 // GLOBAL VARS & TYPES
-const cols = 100;
-const rows = 100;
+const cols = 50;
+const rows = 50;
 const grid = new Array(cols);
 let w: number;
 let h: number;
@@ -38,12 +38,14 @@ class Spot {
 
     show(color: p5.Color): void {
         const { i, j } = this;
-        fill(color);
+        // fill(color);
         if (this.wall) {
             fill(0);
+            noStroke();
+            ellipse(i * w + w / 2, j * h + h / 2, w / 2, h / 2);
         }
-        noStroke();
-        rect(i * w, j * h, w - 1, h - 1);
+
+        // rect(i * w, j * h, w - 1, h - 1);
     }
 
     addNeighbors(grid: Spot[][]) {
@@ -152,7 +154,7 @@ function draw() {
                 }
             }
         }
-        background(0);
+        background(255);
 
         for (let i = 0; i < cols; i++) {
             for (let j = 0; j < rows; j++) {
@@ -161,11 +163,11 @@ function draw() {
         }
 
         for (let i = 0; i < closedSet.length; i++) {
-            closedSet[i].show(color(255, 0, 0));
+            // closedSet[i].show(color(255, 0, 0));
         }
 
         for (let i = 0; i < openSet.length; i++) {
-            openSet[i].show(color(0, 255, 0));
+            // openSet[i].show(color(0, 255, 0));
         }
 
         path = [];
@@ -177,8 +179,17 @@ function draw() {
         }
 
         for (let i = 0; i < path.length; i++) {
-            path[i].show(color(0, 0, 255));
+            // path[i].show(color(0, 0, 255));
         }
+
+        noFill();
+        stroke(255, 0, 200);
+        strokeWeight(w / 2);
+        beginShape();
+        for (let i = 0; i < path.length; i++) {
+            vertex(path[i].i * w + w / 2, path[i].j * h + h / 2);
+        }
+        endShape();
     } else {
         // TODO: no solution
         console.log('no solution');
