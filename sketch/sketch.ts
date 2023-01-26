@@ -1,8 +1,15 @@
 const flock: Boid[] = [];
 
+let alignSlider: p5.Element,
+    cohesionSlider: p5.Element,
+    separationSlider: p5.Element;
+
 function setup() {
     createCanvas(640, 360);
-    for (let i = 0; i < 100; i++) {
+    alignSlider = createSlider(0, 5, 1, 0.1);
+    cohesionSlider = createSlider(0, 5, 1, 0.1);
+    separationSlider = createSlider(0, 5, 1, 0.1);
+    for (let i = 0; i < 200; i++) {
         flock.push(new Boid());
     }
 }
