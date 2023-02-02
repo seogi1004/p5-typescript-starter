@@ -1,93 +1,98 @@
-var ColorHelper = (function () {
-    function ColorHelper() {
+var Point = (function () {
+    function Point(x, y) {
+        this.x = x;
+        this.y = y;
     }
-    ColorHelper.getColorVector = function (c) {
-        return createVector(red(c), green(c), blue(c));
-    };
-    ColorHelper.rainbowColorBase = function () {
-        return [
-            color('red'),
-            color('orange'),
-            color('yellow'),
-            color('green'),
-            color(38, 58, 150),
-            color('indigo'),
-            color('violet')
-        ];
-    };
-    ColorHelper.getColorsArray = function (total, baseColorArray) {
-        var _this = this;
-        if (baseColorArray === void 0) { baseColorArray = null; }
-        if (baseColorArray == null) {
-            baseColorArray = ColorHelper.rainbowColorBase();
-        }
-        var rainbowColors = baseColorArray.map(function (x) { return _this.getColorVector(x); });
-        ;
-        var colours = new Array();
-        for (var i = 0; i < total; i++) {
-            var colorPosition = i / total;
-            var scaledColorPosition = colorPosition * (rainbowColors.length - 1);
-            var colorIndex = Math.floor(scaledColorPosition);
-            var colorPercentage = scaledColorPosition - colorIndex;
-            var nameColor = this.getColorByPercentage(rainbowColors[colorIndex], rainbowColors[colorIndex + 1], colorPercentage);
-            colours.push(color(nameColor.x, nameColor.y, nameColor.z));
-        }
-        return colours;
-    };
-    ColorHelper.getColorByPercentage = function (firstColor, secondColor, percentage) {
-        var firstColorCopy = firstColor.copy();
-        var secondColorCopy = secondColor.copy();
-        var deltaColor = secondColorCopy.sub(firstColorCopy);
-        var scaledDeltaColor = deltaColor.mult(percentage);
-        return firstColorCopy.add(scaledDeltaColor);
-    };
-    return ColorHelper;
+    return Point;
 }());
-var PolygonHelper = (function () {
-    function PolygonHelper() {
+var Rectangle = (function () {
+    function Rectangle(x, y, w, h) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
     }
-    PolygonHelper.draw = function (numberOfSides, width) {
-        push();
-        var angle = TWO_PI / numberOfSides;
-        var radius = width / 2;
-        beginShape();
-        for (var a = 0; a < TWO_PI; a += angle) {
-            var sx = cos(a) * radius;
-            var sy = sin(a) * radius;
-            vertex(sx, sy);
-        }
-        endShape(CLOSE);
-        pop();
+    Rectangle.prototype.contains = function (point) {
+        return (point.x >= this.x - this.w &&
+            point.x <= this.x + this.w &&
+            point.y >= this.y - this.h &&
+            point.y <= this.y + this.h);
     };
-    return PolygonHelper;
+    return Rectangle;
 }());
-var numberOfShapesControl;
+var QuadTree = (function () {
+    function QuadTree(boundary, n) {
+        this.boundary = boundary;
+        this.capacity = n;
+        this.points = [];
+        this.divided = false;
+    }
+    QuadTree.prototype.subdivide = function () {
+        var _a = this.boundary, x = _a.x, y = _a.y, w = _a.w, h = _a.h;
+        var capacity = this.capacity;
+        var nw = new Rectangle(x - w / 2, y - h / 2, w / 2, h / 2);
+        this.northwest = new QuadTree(nw, capacity);
+        var ne = new Rectangle(x + w / 2, y - h / 2, w / 2, h / 2);
+        this.northeast = new QuadTree(ne, capacity);
+        var sw = new Rectangle(x - w / 2, y + h / 2, w / 2, h / 2);
+        this.southwest = new QuadTree(sw, capacity);
+        var se = new Rectangle(x + w / 2, y + h / 2, w / 2, h / 2);
+        this.southeast = new QuadTree(se, capacity);
+        this.divided = true;
+    };
+    QuadTree.prototype.insert = function (point) {
+        if (!this.boundary.contains(point)) {
+            return false;
+        }
+        if (this.points.length < this.capacity) {
+            this.points.push(point);
+            return true;
+        }
+        else {
+            if (!this.divided) {
+                this.subdivide();
+            }
+            if (this.northeast.insert(point))
+                return true;
+            else if (this.northwest.insert(point))
+                return true;
+            else if (this.southeast.insert(point))
+                return true;
+            else if (this.southwest.insert(point))
+                return true;
+        }
+    };
+    QuadTree.prototype.show = function () {
+        var _a = this.boundary, x = _a.x, y = _a.y, w = _a.w, h = _a.h;
+        stroke(255);
+        strokeWeight(1);
+        noFill();
+        rectMode(CENTER);
+        rect(x, y, w * 2, h * 2);
+        if (this.divided) {
+            this.northwest.show();
+            this.northeast.show();
+            this.southwest.show();
+            this.southeast.show();
+        }
+    };
+    return QuadTree;
+}());
+var qtree;
 function setup() {
-    console.log("🚀 - Setup initialized - P5 is running");
-    createCanvas(windowWidth, windowHeight);
-    rectMode(CENTER).noFill().frameRate(30);
-    numberOfShapesControl = createSlider(1, 30, 15, 1).position(10, 10).style("width", "100px");
-}
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+    createCanvas(400, 400);
+    var boundary = new Rectangle(200, 200, 200, 200);
+    qtree = new QuadTree(boundary, 4);
+    console.log(qtree);
 }
 function draw() {
-    background(0);
-    translate(width / 2, height / 2);
-    var numberOfShapes = numberOfShapesControl.value();
-    var colours = ColorHelper.getColorsArray(numberOfShapes);
-    var speed = (frameCount / (numberOfShapes * 30)) * 2;
-    for (var i = 0; i < numberOfShapes; i++) {
-        push();
-        var lineWidth = 8;
-        var spin = speed * (numberOfShapes - i);
-        var numberOfSides = 3 + i;
-        var width_1 = 40 * i;
-        strokeWeight(lineWidth);
-        stroke(colours[i]);
-        rotate(spin);
-        PolygonHelper.draw(numberOfSides, width_1);
-        pop();
+    if (mouseIsPressed) {
+        for (var i = 0; i < 5; i++) {
+            var m = new Point(mouseX, mouseY);
+            qtree.insert(m);
+        }
     }
+    background(0);
+    qtree.show();
 }
 //# sourceMappingURL=build.js.map

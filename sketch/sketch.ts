@@ -15,10 +15,13 @@ function setup() {
 
 // p5 WILL HANDLE REQUESTING ANIMATION FRAMES FROM THE BROWSER AND WIL RUN DRAW() EACH ANIMATION FROME
 function draw() {
+    if (mouseIsPressed) {
+        for (let i = 0; i < 5; i++) {
+            let m = new Point(mouseX, mouseY);
+            qtree.insert(m);
+        }
+    }
+
     background(0);
     qtree.show();
-
-    if (mouseIsPressed) {
-        let m = new Point(mouseX, mouseY);
-    }
 }

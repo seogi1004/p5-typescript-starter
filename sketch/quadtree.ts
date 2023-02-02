@@ -23,10 +23,10 @@ class Rectangle {
 
     contains(point: Point) {
         return (
-            point.x > this.x - this.w &&
-            point.x < this.x + this.w &&
-            point.y > this.y - this.h &&
-            point.y < this.y + this.h
+            point.x >= this.x - this.w &&
+            point.x <= this.x + this.w &&
+            point.y >= this.y - this.h &&
+            point.y <= this.y + this.h
         );
     }
 }
@@ -67,21 +67,22 @@ class QuadTree {
         this.divided = true;
     }
 
-    insert(point: Point) {
+    insert(point: Point): boolean {
         if (!this.boundary.contains(point)) {
-            return;
+            return false;
         }
 
         if (this.points.length < this.capacity) {
             this.points.push(point);
+            return true;
         } else {
             if (!this.divided) {
                 this.subdivide();
             }
-            this.northeast.insert(point);
-            this.northwest.insert(point);
-            this.southeast.insert(point);
-            this.southwest.insert(point);
+            if (this.northeast.insert(point)) return true;
+            else if (this.northwest.insert(point)) return true;
+            else if (this.southeast.insert(point)) return true;
+            else if (this.southwest.insert(point)) return true;
         }
     }
 
@@ -100,9 +101,9 @@ class QuadTree {
             this.southeast.show();
         }
 
-        for (let p of this.points) {
-            strokeWeight(4);
-            point(p.x, p.y);
-        }
+        // for (let p of this.points) {
+        //     strokeWeight(4);
+        //     point(p.x, p.y);
+        // }
     }
 }
