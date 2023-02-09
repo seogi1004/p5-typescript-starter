@@ -29,6 +29,15 @@ class Rectangle {
             point.y <= this.y + this.h
         );
     }
+
+    intersects(range: Rectangle) {
+        return !(
+            range.x - range.w > this.x + this.w ||
+            range.x + range.w < this.x - this.w ||
+            range.y - range.h > this.y + this.h ||
+            range.y + range.h < this.y - this.h
+        );
+    }
 }
 
 class QuadTree {
@@ -86,6 +95,29 @@ class QuadTree {
         }
     }
 
+    query(range: Rectangle, found?: Point[]): Point[] {
+        if (!found) found = [];
+
+        if (!this.boundary.intersects(range)) {
+            return found;
+        } else {
+            for (let p of this.points) {
+                if (range.contains(p)) {
+                    found.push(p);
+                }
+            }
+
+            if (this.divided) {
+                this.northwest.query(range, found);
+                this.northeast.query(range, found);
+                this.southwest.query(range, found);
+                this.southeast.query(range, found);
+            }
+        }
+
+        return found;
+    }
+
     show() {
         const { x, y, w, h } = this.boundary;
         stroke(255);
@@ -94,16 +126,16 @@ class QuadTree {
         rectMode(CENTER);
         rect(x, y, w * 2, h * 2);
 
+        for (let p of this.points) {
+            strokeWeight(2);
+            point(p.x, p.y);
+        }
+
         if (this.divided) {
             this.northwest.show();
             this.northeast.show();
             this.southwest.show();
             this.southeast.show();
         }
-
-        // for (let p of this.points) {
-        //     strokeWeight(4);
-        //     point(p.x, p.y);
-        // }
     }
 }
