@@ -1,33 +1,37 @@
-let qtree: QuadTree;
+let particles: Particle[] = [];
 
 function setup() {
-    createCanvas(400, 400);
+    createCanvas(600, 400);
 
-    let boundary = new Rectangle(200, 200, 200, 200);
-    qtree = new QuadTree(boundary, 4);
-
-    for (let i = 0; i < 300; i++) {
-        let x = randomGaussian(width / 2, width / 8);
-        let y = randomGaussian(height / 2, height / 8);
-        let p = new Point(x, y);
-        qtree.insert(p);
+    for (let i = 0; i < 1000; i++) {
+        particles[i] = new Particle(random(width), random(height));
     }
 }
 
 // p5 WILL HANDLE REQUESTING ANIMATION FRAMES FROM THE BROWSER AND WIL RUN DRAW() EACH ANIMATION FROME
 function draw() {
     background(0);
-    qtree.show();
 
-    stroke(0, 255, 0);
-    rectMode(CENTER);
+    let boundary = new Rectangle<Particle>(300, 200, 600, 400);
+    let qtree: QuadTree<Particle> = new QuadTree(boundary, 4);
 
-    let range = new Rectangle(mouseX, mouseY, 25, 25);
-    rect(range.x, range.y, range.w * 2, range.h * 2);
+    for (let p of particles) {
+        let point = new Point(p.x, p.y, p);
+        qtree.insert(point);
+        p.move();
+        p.render();
+        p.setHighlight(false);
+    }
 
-    let points = qtree.query(range);
-    for (let p of points) {
-        strokeWeight(4);
-        point(p.x, p.y);
+    for (let p of particles) {
+        let range = new Circle(p.x, p.y, p.r * 2);
+        let points = qtree.query<Circle<Particle>>(range);
+        for (let point of points) {
+            let other = point.userData;
+            // for (let other of particles) {
+            if (p !== other && p.intersects(other)) {
+                p.setHighlight(true);
+            }
+        }
     }
 }

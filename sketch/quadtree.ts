@@ -1,14 +1,16 @@
-class Point {
+class Point<T> {
     x: number;
     y: number;
+    userData: T;
 
-    constructor(x: number, y: number) {
+    constructor(x: number, y: number, userData: T) {
         this.x = x;
         this.y = y;
+        this.userData = userData;
     }
 }
 
-class Rectangle {
+class Rectangle<T> {
     x: number;
     y: number;
     w: number;
@@ -21,7 +23,7 @@ class Rectangle {
         this.h = h;
     }
 
-    contains(point: Point) {
+    contains(point: Point<T>) {
         return (
             point.x >= this.x - this.w &&
             point.x <= this.x + this.w &&
@@ -30,7 +32,7 @@ class Rectangle {
         );
     }
 
-    intersects(range: Rectangle) {
+    intersects(range: Rectangle<T>) {
         return !(
             range.x - range.w > this.x + this.w ||
             range.x + range.w < this.x - this.w ||
@@ -40,17 +42,62 @@ class Rectangle {
     }
 }
 
-class QuadTree {
-    boundary: Rectangle;
+class Circle<T> extends Rectangle<T> {
+    x: number;
+    y: number;
+    r: number;
+    rSquared: number;
+
+    constructor(x: number, y: number, r: number) {
+        super(x, y, r, r);
+        this.x = x;
+        this.y = y;
+        this.r = r;
+        this.rSquared = this.r * this.r;
+    }
+
+    contains(point: Point<T>) {
+        // check if the point is in the circle by checking if the euclidean distance of
+        // the point and the center of the circle if smaller or equal to the radius of
+        // the circle
+        let d = Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2);
+        return d <= this.rSquared;
+    }
+
+    intersects(range: Rectangle<T>) {
+        let xDist = Math.abs(range.x - this.x);
+        let yDist = Math.abs(range.y - this.y);
+
+        // radius of the circle
+        let r = this.r;
+
+        let w = range.w;
+        let h = range.h;
+
+        let edges = Math.pow(xDist - w, 2) + Math.pow(yDist - h, 2);
+
+        // no intersection
+        if (xDist > r + w || yDist > r + h) return false;
+
+        // intersection within the circle
+        if (xDist <= w || yDist <= h) return true;
+
+        // intersection on the edge of the circle
+        return edges <= this.rSquared;
+    }
+}
+
+class QuadTree<T> {
+    boundary: Rectangle<T>;
     capacity: number;
-    points: Point[];
-    northwest: QuadTree;
-    northeast: QuadTree;
-    southwest: QuadTree;
-    southeast: QuadTree;
+    points: Point<T>[];
+    northwest: QuadTree<T>;
+    northeast: QuadTree<T>;
+    southwest: QuadTree<T>;
+    southeast: QuadTree<T>;
     divided: boolean;
 
-    constructor(boundary: Rectangle, n: number) {
+    constructor(boundary: Rectangle<T>, n: number) {
         this.boundary = boundary;
         this.capacity = n;
         this.points = [];
@@ -62,21 +109,21 @@ class QuadTree {
         const capacity = this.capacity;
 
         let nw = new Rectangle(x - w / 2, y - h / 2, w / 2, h / 2);
-        this.northwest = new QuadTree(nw, capacity);
+        this.northwest = new QuadTree<T>(nw, capacity);
 
         let ne = new Rectangle(x + w / 2, y - h / 2, w / 2, h / 2);
-        this.northeast = new QuadTree(ne, capacity);
+        this.northeast = new QuadTree<T>(ne, capacity);
 
         let sw = new Rectangle(x - w / 2, y + h / 2, w / 2, h / 2);
-        this.southwest = new QuadTree(sw, capacity);
+        this.southwest = new QuadTree<T>(sw, capacity);
 
         let se = new Rectangle(x + w / 2, y + h / 2, w / 2, h / 2);
-        this.southeast = new QuadTree(se, capacity);
+        this.southeast = new QuadTree<T>(se, capacity);
 
         this.divided = true;
     }
 
-    insert(point: Point): boolean {
+    insert(point: Point<T>): boolean {
         if (!this.boundary.contains(point)) {
             return false;
         }
@@ -95,7 +142,7 @@ class QuadTree {
         }
     }
 
-    query(range: Rectangle, found?: Point[]): Point[] {
+    query<S extends Rectangle<T>>(range: S, found?: Point<T>[]): Point<T>[] {
         if (!found) found = [];
 
         if (!this.boundary.intersects(range)) {
