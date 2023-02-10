@@ -1,7 +1,51 @@
-var Point = (function () {
-    function Point(x, y) {
+var Particle = (function () {
+    function Particle(x, y) {
         this.x = x;
         this.y = y;
+        this.r = 4;
+        this.highlight = false;
+    }
+    Particle.prototype.setHighlight = function (value) {
+        this.highlight = value;
+    };
+    Particle.prototype.intersects = function (other) {
+        var d = dist(this.x, this.y, other.x, other.y);
+        return d < this.r + other.r;
+    };
+    Particle.prototype.move = function () {
+        this.x += random(-1, 1);
+        this.y += random(-1, 1);
+    };
+    Particle.prototype.render = function () {
+        noStroke();
+        if (this.highlight) {
+            fill(255);
+        }
+        else {
+            fill(100);
+        }
+        ellipse(this.x, this.y, this.r * 2);
+    };
+    return Particle;
+}());
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var Point = (function () {
+    function Point(x, y, userData) {
+        this.x = x;
+        this.y = y;
+        this.userData = userData;
     }
     return Point;
 }());
@@ -26,6 +70,35 @@ var Rectangle = (function () {
     };
     return Rectangle;
 }());
+var Circle = (function (_super) {
+    __extends(Circle, _super);
+    function Circle(x, y, r) {
+        var _this = _super.call(this, x, y, r, r) || this;
+        _this.x = x;
+        _this.y = y;
+        _this.r = r;
+        _this.rSquared = _this.r * _this.r;
+        return _this;
+    }
+    Circle.prototype.contains = function (point) {
+        var d = Math.pow(point.x - this.x, 2) + Math.pow(point.y - this.y, 2);
+        return d <= this.rSquared;
+    };
+    Circle.prototype.intersects = function (range) {
+        var xDist = Math.abs(range.x - this.x);
+        var yDist = Math.abs(range.y - this.y);
+        var r = this.r;
+        var w = range.w;
+        var h = range.h;
+        var edges = Math.pow(xDist - w, 2) + Math.pow(yDist - h, 2);
+        if (xDist > r + w || yDist > r + h)
+            return false;
+        if (xDist <= w || yDist <= h)
+            return true;
+        return edges <= this.rSquared;
+    };
+    return Circle;
+}(Rectangle));
 var QuadTree = (function () {
     function QuadTree(boundary, n) {
         this.boundary = boundary;
@@ -111,30 +184,36 @@ var QuadTree = (function () {
     };
     return QuadTree;
 }());
-var qtree;
+var particles = [];
 function setup() {
-    createCanvas(400, 400);
-    var boundary = new Rectangle(200, 200, 200, 200);
-    qtree = new QuadTree(boundary, 4);
-    for (var i = 0; i < 300; i++) {
-        var x = randomGaussian(width / 2, width / 8);
-        var y = randomGaussian(height / 2, height / 8);
-        var p = new Point(x, y);
-        qtree.insert(p);
+    createCanvas(600, 400);
+    for (var i = 0; i < 1000; i++) {
+        particles[i] = new Particle(random(width), random(height));
     }
 }
 function draw() {
     background(0);
-    qtree.show();
-    stroke(0, 255, 0);
-    rectMode(CENTER);
-    var range = new Rectangle(mouseX, mouseY, 25, 25);
-    rect(range.x, range.y, range.w * 2, range.h * 2);
-    var points = qtree.query(range);
-    for (var _i = 0, points_1 = points; _i < points_1.length; _i++) {
-        var p = points_1[_i];
-        strokeWeight(4);
-        point(p.x, p.y);
+    var boundary = new Rectangle(300, 200, 600, 400);
+    var qtree = new QuadTree(boundary, 4);
+    for (var _i = 0, particles_1 = particles; _i < particles_1.length; _i++) {
+        var p = particles_1[_i];
+        var point_1 = new Point(p.x, p.y, p);
+        qtree.insert(point_1);
+        p.move();
+        p.render();
+        p.setHighlight(false);
+    }
+    for (var _a = 0, particles_2 = particles; _a < particles_2.length; _a++) {
+        var p = particles_2[_a];
+        var range = new Circle(p.x, p.y, p.r * 2);
+        var points = qtree.query(range);
+        for (var _b = 0, points_1 = points; _b < points_1.length; _b++) {
+            var point_2 = points_1[_b];
+            var other = point_2.userData;
+            if (p !== other && p.intersects(other)) {
+                p.setHighlight(true);
+            }
+        }
     }
 }
 //# sourceMappingURL=build.js.map
