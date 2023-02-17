@@ -10,6 +10,36 @@ function setup() {
         values[i] = random(height);
     }
     frameRate(5);
+    quickSort(values, 0, values.length - 1);
+}
+
+function quickSort(arr: number[], start: number, end: number) {
+    if(start >= end) {
+        return;
+    }
+    let index = partition(arr, start, end);
+    quickSort(arr, start, index - 1);
+    quickSort(arr, index + 1, end)
+}
+
+function partition(arr: number[], start: number, end: number): number {
+    let pivotIndex = start;
+    let pivotValue = arr[end];
+    for (let i = start; i < end; i++) {
+        if (arr[i] < pivotValue){
+            swap(arr, i, pivotIndex);
+            pivotIndex++;
+        }
+    }
+
+    swap(arr, pivotIndex, end);
+    return pivotIndex;
+}
+
+function swap(arr: number[], a: number,  b: number) {
+    let temp = arr[a];
+    arr[a] = arr[b];
+    arr[b] = temp;
 }
 
 function draw() {
