@@ -27,6 +27,10 @@ async function quickSort(arr: number[], start: number, end: number) {
 }
 
 async function partition(arr: number[], start: number, end: number): Promise<number> {
+    for (let i = start; i < end; i++) {
+        states[i] = 1;
+    }
+
     let pivotIndex = start;
     let pivotValue = arr[end];
     states[pivotIndex] = 0;
@@ -55,13 +59,16 @@ function sleep(ms: number) {
 }
 
 function draw() {
-    background(51);
+    background(0);
+
     for (let i = 0; i < values.length; i++) {
-        stroke(0);
-        if (states[i] === 0) {
-            fill(255, 0, 0);
+        noStroke();
+        if (states[i] == 0) {
+            fill('#E0777D');
+        } else if (states[i] == 1) {
+            fill('#D6FFB7');
         } else {
-            fill(255);
+            fill("#FFF0F0");
         }
         rect(i * w, height - values[i], w, values[i]);
     }
