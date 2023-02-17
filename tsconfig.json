@@ -8,6 +8,7 @@
     "rootDir": "./sketch/",
     "sourceMap": true,
     "target": "es5",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "lib": ["es2018", "dom"]
   }
 }
