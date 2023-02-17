@@ -35,13 +35,14 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 var values = [];
-var i = 0;
 var w = 10;
+var states = [];
 function setup() {
     createCanvas(800, 200);
     values = new Array(floor(width / w));
-    for (var i_1 = 0; i_1 < values.length; i_1++) {
-        values[i_1] = random(height);
+    for (var i = 0; i < values.length; i++) {
+        values[i] = random(height);
+        states[i] = -1;
     }
     quickSort(values, 0, values.length - 1);
 }
@@ -57,6 +58,7 @@ function quickSort(arr, start, end) {
                     return [4, partition(arr, start, end)];
                 case 1:
                     index = _a.sent();
+                    states[index] = -1;
                     return [4, Promise.all([
                             quickSort(arr, start, index - 1),
                             quickSort(arr, index + 1, end)
@@ -70,24 +72,30 @@ function quickSort(arr, start, end) {
 }
 function partition(arr, start, end) {
     return __awaiter(this, void 0, void 0, function () {
-        var pivotIndex, pivotValue, i_2;
+        var i, pivotIndex, pivotValue, i;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    for (i = start; i < end; i++) {
+                        states[i] = 1;
+                    }
                     pivotIndex = start;
                     pivotValue = arr[end];
-                    i_2 = start;
+                    states[pivotIndex] = 0;
+                    i = start;
                     _a.label = 1;
                 case 1:
-                    if (!(i_2 < end)) return [3, 4];
-                    if (!(arr[i_2] < pivotValue)) return [3, 3];
-                    return [4, swap(arr, i_2, pivotIndex)];
+                    if (!(i < end)) return [3, 4];
+                    if (!(arr[i] < pivotValue)) return [3, 3];
+                    return [4, swap(arr, i, pivotIndex)];
                 case 2:
                     _a.sent();
+                    states[pivotIndex] = -1;
                     pivotIndex++;
+                    states[pivotIndex] = 0;
                     _a.label = 3;
                 case 3:
-                    i_2++;
+                    i++;
                     return [3, 1];
                 case 4: return [4, swap(arr, pivotIndex, end)];
                 case 5:
@@ -117,11 +125,19 @@ function sleep(ms) {
     return new Promise(function (resolve) { return setTimeout(resolve, ms); });
 }
 function draw() {
-    background(51);
-    for (var i_3 = 0; i_3 < values.length; i_3++) {
-        stroke(0);
-        fill(255);
-        rect(i_3 * w, height - values[i_3], w, values[i_3]);
+    background(0);
+    for (var i = 0; i < values.length; i++) {
+        noStroke();
+        if (states[i] == 0) {
+            fill('#E0777D');
+        }
+        else if (states[i] == 1) {
+            fill('#D6FFB7');
+        }
+        else {
+            fill("#FFF0F0");
+        }
+        rect(i * w, height - values[i], w, values[i]);
     }
 }
 //# sourceMappingURL=build.js.map
