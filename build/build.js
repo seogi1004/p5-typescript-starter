@@ -1,95 +1,67 @@
-var ColorHelper = (function () {
-    function ColorHelper() {
+var Boundary = (function () {
+    function Boundary(x1, y1, x2, y2) {
+        this.a = createVector(x1, y1);
+        this.b = createVector(x2, y2);
     }
-    ColorHelper.getColorVector = function (c) {
-        return createVector(red(c), green(c), blue(c));
+    Boundary.prototype.show = function () {
+        stroke(255);
+        line(this.a.x, this.a.y, this.b.x, this.b.y);
     };
-    ColorHelper.rainbowColorBase = function () {
-        return [
-            color('red'),
-            color('orange'),
-            color('yellow'),
-            color('green'),
-            color(38, 58, 150),
-            color('indigo'),
-            color('violet')
-        ];
-    };
-    ColorHelper.getColorsArray = function (total, baseColorArray) {
-        var _this = this;
-        if (baseColorArray === void 0) { baseColorArray = null; }
-        if (baseColorArray == null) {
-            baseColorArray = ColorHelper.rainbowColorBase();
-        }
-        var rainbowColors = baseColorArray.map(function (x) { return _this.getColorVector(x); });
-        ;
-        var colours = new Array();
-        for (var i = 0; i < total; i++) {
-            var colorPosition = i / total;
-            var scaledColorPosition = colorPosition * (rainbowColors.length - 1);
-            var colorIndex = Math.floor(scaledColorPosition);
-            var colorPercentage = scaledColorPosition - colorIndex;
-            var nameColor = this.getColorByPercentage(rainbowColors[colorIndex], rainbowColors[colorIndex + 1], colorPercentage);
-            colours.push(color(nameColor.x, nameColor.y, nameColor.z));
-        }
-        return colours;
-    };
-    ColorHelper.getColorByPercentage = function (firstColor, secondColor, percentage) {
-        var firstColorCopy = firstColor.copy();
-        var secondColorCopy = secondColor.copy();
-        var deltaColor = secondColorCopy.sub(firstColorCopy);
-        var scaledDeltaColor = deltaColor.mult(percentage);
-        return firstColorCopy.add(scaledDeltaColor);
-    };
-    return ColorHelper;
+    return Boundary;
 }());
-var PolygonHelper = (function () {
-    function PolygonHelper() {
+var Ray = (function () {
+    function Ray(x, y) {
+        this.pos = createVector(x, y);
+        this.dir = createVector(1, 0);
     }
-    PolygonHelper.draw = function (numberOfSides, width) {
-        push();
-        var angle = TWO_PI / numberOfSides;
-        var radius = width / 2;
-        beginShape();
-        for (var a = 0; a < TWO_PI; a += angle) {
-            var sx = cos(a) * radius;
-            var sy = sin(a) * radius;
-            vertex(sx, sy);
+    Ray.prototype.lookAt = function (x, y) {
+        this.dir.x = x - this.pos.x;
+        this.dir.y = y - this.pos.y;
+        this.dir.normalize();
+    };
+    Ray.prototype.cast = function (wall) {
+        var x1 = wall.a.x;
+        var y1 = wall.a.y;
+        var x2 = wall.b.x;
+        var y2 = wall.b.y;
+        var x3 = this.pos.x;
+        var y3 = this.pos.y;
+        var x4 = this.pos.x + this.dir.x;
+        var y4 = this.pos.y + this.dir.y;
+        var den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+        if (den === 0)
+            return;
+        var t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
+        var u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
+        if (t > 0 && t < 1 && u > 0) {
+            return true;
         }
-        endShape(CLOSE);
+        else {
+            return;
+        }
+    };
+    Ray.prototype.show = function () {
+        stroke(255);
+        push();
+        translate(this.pos.x, this.pos.y);
+        line(0, 0, this.dir.x * 10, this.dir.y * 10);
         pop();
     };
-    return PolygonHelper;
+    return Ray;
 }());
-var numberOfShapesControl;
+var wall;
+var ray;
 function setup() {
-    console.log('🚀 - Setup initialized - P5 is running');
-    createCanvas(windowWidth, windowHeight);
-    rectMode(CENTER).noFill().frameRate(30);
-    numberOfShapesControl = createSlider(1, 30, 15, 1)
-        .position(10, 10)
-        .style('width', '100px');
-}
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+    createCanvas(400, 400);
+    wall = new Boundary(300, 100, 300, 300);
+    ray = new Ray(100, 200);
 }
 function draw() {
     background(0);
-    translate(width / 2, height / 2);
-    var numberOfShapes = numberOfShapesControl.value();
-    var colours = ColorHelper.getColorsArray(numberOfShapes);
-    var speed = (frameCount / (numberOfShapes * 30)) * 2;
-    for (var i = 0; i < numberOfShapes; i++) {
-        push();
-        var lineWidth = 8;
-        var spin = speed * (numberOfShapes - i);
-        var numberOfSides = 3 + i;
-        var width_1 = 40 * i;
-        strokeWeight(lineWidth);
-        stroke(colours[i]);
-        rotate(spin);
-        PolygonHelper.draw(numberOfSides, width_1);
-        pop();
-    }
+    wall.show();
+    ray.show();
+    ray.lookAt(mouseX, mouseY);
+    var pt = ray.cast(wall);
+    console.log(pt);
 }
 //# sourceMappingURL=build.js.map
