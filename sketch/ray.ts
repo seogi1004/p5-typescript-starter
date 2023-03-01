@@ -2,9 +2,9 @@ class Ray {
     pos: p5.Vector;
     dir: p5.Vector;
 
-    constructor(x: number, y: number) {
-        this.pos = createVector(x, y);
-        this.dir = createVector(1, 0);
+    constructor(pos: p5.Vector, angle: number) {
+        this.pos = pos;
+        this.dir = p5.Vector.fromAngle(angle);
     }
 
     lookAt(x: number, y: number) {
@@ -30,7 +30,10 @@ class Ray {
         const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
 
         if (t > 0 && t < 1 && u > 0) {
-            return true;
+            const pt = createVector();
+            pt.x = x1 + t * (x2- x1);
+            pt.y = y1 + t * (y2- y1);
+            return pt;
         } else {
             return;
         }
