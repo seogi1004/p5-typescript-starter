@@ -11,24 +11,53 @@ var Boundary = (function () {
 }());
 var Particle = (function () {
     function Particle() {
+        this.fov = 45;
         this.pos = createVector(width / 2, height / 2);
         this.rays = [];
-        for (var i = 0; i < 360; i += 1) {
-            this.rays[i] = new Ray(this.pos, radians(i));
+        this.heading = 0;
+        for (var a = -this.fov / 2; a < this.fov / 2; a += 1) {
+            this.rays.push(new Ray(this.pos, radians(a)));
         }
     }
+    Particle.prototype.move = function (dist) {
+        var vel = p5.Vector.fromAngle(this.heading);
+        vel.setMag(dist);
+        this.pos.add(vel);
+    };
+    Particle.prototype.updateFOV = function (fov) {
+        this.fov = fov;
+        this.rays = [];
+        for (var a = -this.fov / 2; a < this.fov / 2; a += 1) {
+            this.rays.push(new Ray(this.pos, radians(a) + this.heading));
+        }
+    };
+    Particle.prototype.rotate = function (angle) {
+        this.heading += angle;
+        var index = 0;
+        for (var a = -this.fov / 2; a < this.fov / 2; a += 1) {
+            if (this.rays[index]) {
+                this.rays[index].setAngle(radians(a) + this.heading);
+                index++;
+            }
+        }
+    };
     Particle.prototype.update = function (x, y) {
         this.pos.set(x, y);
     };
     Particle.prototype.look = function (walls) {
         var _this = this;
-        this.rays.forEach(function (ray) {
+        var scene = [];
+        this.rays.forEach(function (ray, i) {
             var closest = null;
             var record = Infinity;
             walls.forEach(function (wall) {
                 var pt = ray.cast(wall);
                 if (pt) {
                     var d = p5.Vector.dist(_this.pos, pt);
+                    var a = ray.dir.heading() - _this.heading;
+                    if (!mouseIsPressed) {
+                        d *= cos(a);
+                    }
                     if (d < record) {
                         record = d;
                         closest = pt;
@@ -39,7 +68,9 @@ var Particle = (function () {
                 stroke(255, 100);
                 line(_this.pos.x, _this.pos.y, closest.x, closest.y);
             }
+            scene[i] = record;
         });
+        return scene;
     };
     Particle.prototype.show = function () {
         fill(255);
@@ -91,32 +122,69 @@ var Ray = (function () {
         line(0, 0, this.dir.x * 10, this.dir.y * 10);
         pop();
     };
+    Ray.prototype.setAngle = function (angle) {
+        this.dir = p5.Vector.fromAngle(angle);
+    };
     return Ray;
 }());
 var walls = [];
 var particle;
+var sceneW = 400;
+var sceneH = 400;
+var sliderFOV;
 function setup() {
-    createCanvas(400, 400);
+    createCanvas(800, 400);
     for (var i = 0; i < 5; i++) {
-        var x1 = random(width);
-        var x2 = random(width);
-        var y1 = random(height);
-        var y2 = random(height);
+        var x1 = random(sceneW);
+        var x2 = random(sceneW);
+        var y1 = random(sceneH);
+        var y2 = random(sceneH);
         walls[i] = new Boundary(x1, y1, x2, y2);
     }
-    walls.push(new Boundary(0, 0, width, 0));
-    walls.push(new Boundary(width, 0, width, height));
-    walls.push(new Boundary(width, height, 0, height));
-    walls.push(new Boundary(0, height, 0, 0));
+    walls.push(new Boundary(0, 0, sceneW, 0));
+    walls.push(new Boundary(sceneW, 0, sceneW, sceneH));
+    walls.push(new Boundary(sceneW, sceneH, 0, sceneH));
+    walls.push(new Boundary(0, sceneH, 0, 0));
     particle = new Particle();
+    sliderFOV = createSlider(0, 360, 45);
+    sliderFOV.input(changeFOV);
+}
+function changeFOV() {
+    var fov = sliderFOV.value();
+    particle.updateFOV(fov);
 }
 function draw() {
+    if (keyIsDown(LEFT_ARROW)) {
+        particle.rotate(-0.1);
+    }
+    else if (keyIsDown(RIGHT_ARROW)) {
+        particle.rotate(0.1);
+    }
+    else if (keyIsDown(UP_ARROW)) {
+        particle.move(1);
+    }
+    else if (keyIsDown(DOWN_ARROW)) {
+        particle.move(-1);
+    }
     background(0);
     walls.forEach(function (wall) {
         wall.show();
     });
-    particle.update(mouseX, mouseY);
     particle.show();
-    particle.look(walls);
+    var scene = particle.look(walls);
+    var w = sceneW / scene.length;
+    push();
+    translate(sceneW, 0);
+    for (var i = 0; i < scene.length; i++) {
+        noStroke();
+        var sq_1 = scene[i] * scene[i];
+        var wSq = sceneW * sceneW;
+        var b = map(sq_1, 0, wSq, 255, 0);
+        var h = map(scene[i], 0, sceneW, sceneH, 0);
+        fill(b);
+        rectMode(CENTER);
+        rect(i * w + w / 2, sceneH / 2, w + 1, h);
+    }
+    pop();
 }
 //# sourceMappingURL=build.js.map

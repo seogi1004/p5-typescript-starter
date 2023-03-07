@@ -1,12 +1,41 @@
 class Particle {
     pos: p5.Vector;
     rays: Ray[];
+    heading: number;
+    fov: number;
 
     constructor() {
+        this.fov = 45;
         this.pos = createVector(width / 2, height / 2);
         this.rays = [];
-        for (let i = 0; i < 360; i += 1) {
-            this.rays[i] = new Ray(this.pos, radians(i));
+        this.heading = 0;
+        for (let a = -this.fov / 2; a < this.fov / 2; a += 1) {
+            this.rays.push(new Ray(this.pos, radians(a)));
+        }
+    }
+
+    move(dist: number) {
+        const vel = p5.Vector.fromAngle(this.heading);
+        vel.setMag(dist);
+        this.pos.add(vel);
+    }
+
+    updateFOV(fov: number) {
+        this.fov = fov;
+        this.rays = [];
+        for (let a = -this.fov / 2; a < this.fov / 2; a += 1) {
+            this.rays.push(new Ray(this.pos, radians(a) + this.heading));
+        }
+    }
+
+    rotate(angle: number) {
+        this.heading += angle;
+        let index = 0;
+        for (let a = -this.fov / 2; a < this.fov / 2; a += 1) {
+            if (this.rays[index]) {
+                this.rays[index].setAngle(radians(a) + this.heading);
+                index++;
+            }
         }
     }
 
@@ -15,13 +44,18 @@ class Particle {
     }
 
     look(walls: Boundary[]) {
-        this.rays.forEach(ray => {
+        const scene: number[] = [];
+        this.rays.forEach((ray, i ) => {
             let closest: p5.Vector = null;
             let record = Infinity;
             walls.forEach(wall => {
                 const pt = ray.cast(wall);
                 if (pt) {
-                    const d = p5.Vector.dist(this.pos, pt);
+                    let d = p5.Vector.dist(this.pos, pt);
+                    const a = ray.dir.heading() - this.heading;
+                    if (!mouseIsPressed) {
+                        d *= cos(a)
+                    }
                     if (d < record) {
                         record = d;
                         closest = pt;
@@ -32,7 +66,9 @@ class Particle {
                 stroke(255, 100)
                 line(this.pos.x, this.pos.y, closest.x, closest.y);
             }
-        })
+            scene[i] = record;
+        });
+        return scene;
     }
 
     show() {

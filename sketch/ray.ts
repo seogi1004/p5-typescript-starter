@@ -46,4 +46,8 @@ class Ray {
         line(0, 0, this.dir.x * 10, this.dir.y * 10);
         pop();
     }
+
+    setAngle(angle: number) {
+        this.dir = p5.Vector.fromAngle(angle);
+    }
 }
