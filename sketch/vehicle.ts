@@ -1,11 +1,12 @@
-function setup() {
-    createCanvas(windowWidth, windowHeight);
-}
-function draw() {
-    background(0);
-}
-var Vehicle = (function () {
-    function Vehicle(x, y) {
+class Vehicle {
+    acceleration: p5.Vector;
+    velocity: p5.Vector;
+    position: p5.Vector;
+    r: number;
+    maxspeed: number;
+    maxforce: number;
+
+    constructor(x: number, y: number) {
         this.acceleration = createVector(0, 0);
         this.velocity = createVector(0, -2);
         this.position = createVector(x, y);
@@ -13,27 +14,36 @@ var Vehicle = (function () {
         this.maxspeed = 8;
         this.maxforce = 0.2;
     }
-    Vehicle.prototype.update = function () {
+
+    update() {
         this.velocity.add(this.acceleration);
         this.velocity.limit(this.maxspeed);
         this.position.add(this.velocity);
         this.acceleration.mult(0);
-    };
-    Vehicle.prototype.applyForce = function (force) {
+    }
+
+    applyForce(force: p5.Vector) {
         this.acceleration.add(force);
-    };
-    Vehicle.prototype.seek = function (target) {
-        var desired = p5.Vector.sub(target, this.position);
+    }
+
+    seek(target: p5.Vector) {
+        const desired = p5.Vector.sub(target, this.position);
         desired.setMag(this.maxspeed);
-        var steer = p5.Vector.sub(desired, this.velocity);
+
+        const steer = p5.Vector.sub(desired, this.velocity);
         steer.limit(this.maxforce);
+
         this.applyForce(steer);
-    };
-    Vehicle.prototype.display = function () {
-        var angle = this.velocity.heading() + PI / 2;
+    }
+
+    display() {
+        // Draw a triangle rotated in the direction of velocity
+        const angle = this.velocity.heading() + PI / 2;
+
         push();
         translate(this.position.x, this.position.y);
         rotate(angle);
+
         fill(127);
         stroke(200);
         strokeWeight(1);
@@ -42,8 +52,7 @@ var Vehicle = (function () {
         vertex(-this.r, this.r * 2);
         vertex(this.r, this.r * 2);
         endShape(CLOSE);
+
         pop();
-    };
-    return Vehicle;
-}());
-//# sourceMappingURL=build.js.map
+    }
+}
