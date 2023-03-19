@@ -11,7 +11,7 @@ class Vehicle {
         this.velocity = createVector(0, -2);
         this.position = createVector(x, y);
         this.r = 6;
-        this.maxspeed = 8;
+        this.maxspeed = 5;
         this.maxforce = 0.2;
     }
 
@@ -34,6 +34,24 @@ class Vehicle {
         steer.limit(this.maxforce);
 
         this.applyForce(steer);
+    }
+
+    eat(list: p5.Vector[]) {
+        let record = Infinity;
+        let closet = -1;
+        for (let i = 0; i < list.length; i++) {
+            var d = this.position.dist(list[i]);
+            if (d < record) {
+                record = d;
+                closet = i;
+            }
+        }
+
+        if (record < 5) {
+            list.splice(closet, 1);
+        }
+
+        this.seek(list[closet]);
     }
 
     display() {
