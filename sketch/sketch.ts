@@ -1,6 +1,6 @@
 let vehicle: Vehicle;
 let food: p5.Vector[] = [];
-let poision: p5.Vector[] = [];
+let poison: p5.Vector[] = [];
 
 function setup() {
     createCanvas(640, 360)
@@ -13,7 +13,7 @@ function setup() {
     for (let i = 0; i < 10; i++) {
         const x = random(width);
         const y = random(height);
-        poision.push(createVector(x, y));
+        poison.push(createVector(x, y));
     }
 }
 
@@ -25,12 +25,14 @@ function draw() {
         ellipse(food[i].x, food[i].y, 8, 8);
     }
 
-    for (let i = 0; i < poision.length; i++) {
+    for (let i = 0; i < poison.length; i++) {
         fill(255, 0, 0)
-        ellipse(poision[i].x, poision[i].y, 8, 8);
+        ellipse(poison[i].x, poison[i].y, 8, 8);
     }
 
-    vehicle.eat(food);
+    vehicle.behaviors(food, poison);
+
+    // vehicle.eat(food);
     // vehicle.seek(target);
     vehicle.update();
     vehicle.display();

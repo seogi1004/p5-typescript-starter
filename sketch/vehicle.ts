@@ -5,6 +5,7 @@ class Vehicle {
     r: number;
     maxspeed: number;
     maxforce: number;
+    dna: number[];
 
     constructor(x: number, y: number) {
         this.acceleration = createVector(0, 0);
@@ -13,6 +14,10 @@ class Vehicle {
         this.r = 6;
         this.maxspeed = 5;
         this.maxforce = 0.2;
+
+        this.dna = [];
+        this.dna[0] = random(-5, 5);
+        this.dna[1] = random(-5, 5);
     }
 
     update() {
@@ -33,10 +38,22 @@ class Vehicle {
         const steer = p5.Vector.sub(desired, this.velocity);
         steer.limit(this.maxforce);
 
-        this.applyForce(steer);
+        return steer;
     }
 
-    eat(list: p5.Vector[]) {
+
+    behaviors(good: p5.Vector[], bad: p5.Vector[]) {
+        let steerG = this.eat(good);
+        let steerB = this.eat(bad);
+
+        steerG.mult(this.dna[0]);
+        steerB.mult(this.dna[1]);
+
+        this.applyForce(steerG);
+        this.applyForce(steerB);
+    }
+
+    eat(list: p5.Vector[]): p5.Vector {
         let record = Infinity;
         let closet = -1;
         for (let i = 0; i < list.length; i++) {
@@ -49,9 +66,11 @@ class Vehicle {
 
         if (record < 5) {
             list.splice(closet, 1);
+        } else if (closet > -1) {
+            return this.seek(list[closet]);
         }
 
-        this.seek(list[closet]);
+        return createVector(0, 0)
     }
 
     display() {
@@ -62,9 +81,15 @@ class Vehicle {
         translate(this.position.x, this.position.y);
         rotate(angle);
 
+        stroke(0, 255, 0);
+        line(0, 0, 0, -this.dna[0] * 20);
+        stroke(255, 0, 0);
+        line(0, 0, 0, -this.dna[1] * 20);
+
         fill(127);
         stroke(200);
         strokeWeight(1);
+
         beginShape();
         vertex(0, -this.r * 2);
         vertex(-this.r, this.r * 2);
