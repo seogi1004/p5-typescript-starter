@@ -5,15 +5,17 @@ class Vehicle {
     r: number;
     maxspeed: number;
     maxforce: number;
+    health: number;
     dna: number[];
 
     constructor(x: number, y: number) {
         this.acceleration = createVector(0, 0);
         this.velocity = createVector(0, -2);
         this.position = createVector(x, y);
-        this.r = 6;
+        this.r = 4;
         this.maxspeed = 5;
         this.maxforce = 0.2;
+        this.health = 1;
 
         this.dna = [];
         this.dna[0] = random(-5, 5);
@@ -21,6 +23,8 @@ class Vehicle {
     }
 
     update() {
+        this.health -= 0.01;
+
         this.velocity.add(this.acceleration);
         this.velocity.limit(this.maxspeed);
         this.position.add(this.velocity);
@@ -43,8 +47,8 @@ class Vehicle {
 
 
     behaviors(good: p5.Vector[], bad: p5.Vector[]) {
-        let steerG = this.eat(good);
-        let steerB = this.eat(bad);
+        let steerG = this.eat(good, 0.1);
+        let steerB = this.eat(bad, -0.5);
 
         steerG.mult(this.dna[0]);
         steerB.mult(this.dna[1]);
@@ -53,7 +57,7 @@ class Vehicle {
         this.applyForce(steerB);
     }
 
-    eat(list: p5.Vector[]): p5.Vector {
+    eat(list: p5.Vector[], nutrition: number): p5.Vector {
         let record = Infinity;
         let closet = -1;
         for (let i = 0; i < list.length; i++) {
@@ -66,11 +70,16 @@ class Vehicle {
 
         if (record < 5) {
             list.splice(closet, 1);
+            this.health += nutrition;
         } else if (closet > -1) {
             return this.seek(list[closet]);
         }
 
         return createVector(0, 0)
+    }
+
+    dead() {
+        return this.health < 0;
     }
 
     display() {
@@ -86,8 +95,12 @@ class Vehicle {
         stroke(255, 0, 0);
         line(0, 0, 0, -this.dna[1] * 20);
 
-        fill(127);
-        stroke(200);
+        const gr = color(0, 255, 0);
+        const rd = color(255, 0, 0);
+        const col = lerpColor(gr, rd, this.health);
+
+        fill(col);
+        stroke(col);
         strokeWeight(1);
 
         beginShape();
