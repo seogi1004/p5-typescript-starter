@@ -1,6 +1,7 @@
 let vehicles: Vehicle[] = [];
 let food: p5.Vector[] = [];
 let poison: p5.Vector[] = [];
+let debug: any;
 
 function setup() {
     createCanvas(640, 360)
@@ -20,6 +21,8 @@ function setup() {
         const y = random(height);
         poison.push(createVector(x, y));
     }
+
+    debug = createCheckbox();
 }
 
 function mouseDragged() {

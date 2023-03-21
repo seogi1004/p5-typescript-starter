@@ -123,16 +123,18 @@ class Vehicle {
         translate(this.position.x, this.position.y);
         rotate(angle);
 
-        strokeWeight(3);
-        stroke(0, 255, 0);
-        noFill();
-        line(0, 0, 0, -this.dna[0] * 25);
+        if (debug.checked()) {
+            strokeWeight(3);
+            stroke(0, 255, 0);
+            noFill();
+            line(0, 0, 0, -this.dna[0] * 25);
 
-        strokeWeight(2);
-        ellipse(0, 0, this.dna[2] * 2);
-        stroke(255, 0, 0);
-        line(0, 0, 0, -this.dna[1] * 25);
-        ellipse(0, 0, this.dna[3] * 2);
+            strokeWeight(2);
+            ellipse(0, 0, this.dna[2] * 2);
+            stroke(255, 0, 0);
+            line(0, 0, 0, -this.dna[1] * 25);
+            ellipse(0, 0, this.dna[3] * 2);
+        }
 
         const gr = color(0, 255, 0);
         const rd = color(255, 0, 0);

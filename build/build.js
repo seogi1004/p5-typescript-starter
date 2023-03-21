@@ -1,6 +1,7 @@
 var vehicles = [];
 var food = [];
 var poison = [];
+var debug;
 function setup() {
     createCanvas(640, 360);
     for (var i = 0; i < 50; i++) {
@@ -18,6 +19,7 @@ function setup() {
         var y = random(height);
         poison.push(createVector(x, y));
     }
+    debug = createCheckbox();
 }
 function mouseDragged() {
     vehicles.push(new Vehicle(mouseX, mouseY));
@@ -157,15 +159,17 @@ var Vehicle = (function () {
         push();
         translate(this.position.x, this.position.y);
         rotate(angle);
-        strokeWeight(3);
-        stroke(0, 255, 0);
-        noFill();
-        line(0, 0, 0, -this.dna[0] * 25);
-        strokeWeight(2);
-        ellipse(0, 0, this.dna[2] * 2);
-        stroke(255, 0, 0);
-        line(0, 0, 0, -this.dna[1] * 25);
-        ellipse(0, 0, this.dna[3] * 2);
+        if (debug.checked()) {
+            strokeWeight(3);
+            stroke(0, 255, 0);
+            noFill();
+            line(0, 0, 0, -this.dna[0] * 25);
+            strokeWeight(2);
+            ellipse(0, 0, this.dna[2] * 2);
+            stroke(255, 0, 0);
+            line(0, 0, 0, -this.dna[1] * 25);
+            ellipse(0, 0, this.dna[3] * 2);
+        }
         var gr = color(0, 255, 0);
         var rd = color(255, 0, 0);
         var col = lerpColor(gr, rd, this.health);
