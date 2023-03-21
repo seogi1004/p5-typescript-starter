@@ -8,7 +8,7 @@ class Vehicle {
     health: number;
     dna: number[];
 
-    constructor(x: number, y: number) {
+    constructor(x: number, y: number, dna?: number[]) {
         this.acceleration = createVector(0, 0);
         this.velocity = createVector(0, -2);
         this.position = createVector(x, y);
@@ -18,10 +18,30 @@ class Vehicle {
         this.health = 1;
 
         this.dna = [];
-        this.dna[0] = random(-2, 2); // Food weight
-        this.dna[1] = random(-2, 2); // Poison weight
-        this.dna[2] = random(0, 100); // Food perception
-        this.dna[3] = random(0, 100); // Poison perception
+        if (dna !== undefined) {
+            this.dna[0] = dna[0];
+            this.dna[1] = dna[1];
+            this.dna[2] = dna[2];
+            this.dna[3] = dna[3];
+        } else {
+            const mr = 0.1;
+            this.dna[0] = random(-2, 2); // Food weight
+            if (random(1) < mr) {
+                this.dna[0] += random(-0.1, 0.1);
+            }
+            this.dna[1] = random(-2, 2); // Poison weight
+            if (random(1) < mr) {
+                this.dna[1] += random(-0.1, 0.1);
+            }
+            this.dna[2] = random(0, 100); // Food perception
+            if (random(1) < mr) {
+                this.dna[2] += random(-10, 10);
+            }
+            this.dna[3] = random(0, 100); // Poison perception
+            if (random(1) < mr) {
+                this.dna[3] += random(-10, 10);
+            }
+        }
     }
 
     update() {
@@ -49,8 +69,8 @@ class Vehicle {
 
 
     behaviors(good: p5.Vector[], bad: p5.Vector[]) {
-        let steerG = this.eat(good, 0.2, this.dna[2]);
-        let steerB = this.eat(bad, -0.5, this.dna[3]);
+        let steerG = this.eat(good, 0.3, this.dna[2]);
+        let steerB = this.eat(bad, -0.75, this.dna[3]);
 
         steerG.mult(this.dna[0]);
         steerB.mult(this.dna[1]);
@@ -59,22 +79,33 @@ class Vehicle {
         this.applyForce(steerB);
     }
 
+    clone() {
+        if (random(1) < 0.005) {
+            return new Vehicle(this.position.x, this.position.y, this.dna);
+        } else {
+            return null
+        }
+    }
+
     eat(list: p5.Vector[], nutrition: number, perception: number): p5.Vector {
         let record = Infinity;
-        let closet = -1;
-        for (let i = 0; i < list.length; i++) {
+        let closet = null;
+        for (let i = list.length - 1; i >= 0; i--) {
             const d = this.position.dist(list[i]);
-            if (d < record && d < perception) {
-                record = d;
-                closet = i;
+
+            if (d < this.maxspeed) {
+                list.splice(i, 1);
+                this.health += nutrition;
+            } else {
+                if (d < record && d < perception) {
+                    record = d;
+                    closet = list[i];
+                }
             }
         }
 
-        if (record < 5) {
-            list.splice(closet, 1);
-            this.health += nutrition;
-        } else if (closet > -1) {
-            return this.seek(list[closet]);
+        if (closet !== null) {
+            return this.seek(closet);
         }
 
         return createVector(0, 0)
