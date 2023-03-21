@@ -10,12 +10,12 @@ function setup() {
         vehicles[i] = new Vehicle(x, y);
     }
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 40; i++) {
         const x = random(width);
         const y = random(height);
         food.push(createVector(x, y));
     }
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 20; i++) {
         const x = random(width);
         const y = random(height);
         poison.push(createVector(x, y));
@@ -30,6 +30,11 @@ function draw() {
         const y = random(height);
         food.push(createVector(x, y));
     }
+    if (random(1) < 0.05) {
+        const x = random(width);
+        const y = random(height);
+        poison.push(createVector(x, y));
+    }
 
     for (let i = 0; i < food.length; i++) {
         fill(0, 255, 0)
@@ -42,6 +47,7 @@ function draw() {
     }
 
     for (let i = 0; i < vehicles.length; i++) {
+        vehicles[i].boundaries();
         vehicles[i].behaviors(food, poison);
         vehicles[i].update();
         vehicles[i].display();

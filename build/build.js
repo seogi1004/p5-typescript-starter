@@ -8,12 +8,12 @@ function setup() {
         var y = random(height);
         vehicles[i] = new Vehicle(x, y);
     }
-    for (var i = 0; i < 50; i++) {
+    for (var i = 0; i < 40; i++) {
         var x = random(width);
         var y = random(height);
         food.push(createVector(x, y));
     }
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 20; i++) {
         var x = random(width);
         var y = random(height);
         poison.push(createVector(x, y));
@@ -26,6 +26,11 @@ function draw() {
         var y = random(height);
         food.push(createVector(x, y));
     }
+    if (random(1) < 0.05) {
+        var x = random(width);
+        var y = random(height);
+        poison.push(createVector(x, y));
+    }
     for (var i = 0; i < food.length; i++) {
         fill(0, 255, 0);
         ellipse(food[i].x, food[i].y, 8, 8);
@@ -35,6 +40,7 @@ function draw() {
         ellipse(poison[i].x, poison[i].y, 8, 8);
     }
     for (var i = 0; i < vehicles.length; i++) {
+        vehicles[i].boundaries();
         vehicles[i].behaviors(food, poison);
         vehicles[i].update();
         vehicles[i].display();
@@ -53,8 +59,10 @@ var Vehicle = (function () {
         this.maxforce = 0.2;
         this.health = 1;
         this.dna = [];
-        this.dna[0] = random(-5, 5);
-        this.dna[1] = random(-5, 5);
+        this.dna[0] = random(-2, 2);
+        this.dna[1] = random(-2, 2);
+        this.dna[2] = random(0, 100);
+        this.dna[3] = random(0, 100);
     }
     Vehicle.prototype.update = function () {
         this.health -= 0.01;
@@ -74,19 +82,19 @@ var Vehicle = (function () {
         return steer;
     };
     Vehicle.prototype.behaviors = function (good, bad) {
-        var steerG = this.eat(good, 0.1);
-        var steerB = this.eat(bad, -0.5);
+        var steerG = this.eat(good, 0.2, this.dna[2]);
+        var steerB = this.eat(bad, -0.5, this.dna[3]);
         steerG.mult(this.dna[0]);
         steerB.mult(this.dna[1]);
         this.applyForce(steerG);
         this.applyForce(steerB);
     };
-    Vehicle.prototype.eat = function (list, nutrition) {
+    Vehicle.prototype.eat = function (list, nutrition, perception) {
         var record = Infinity;
         var closet = -1;
         for (var i = 0; i < list.length; i++) {
             var d = this.position.dist(list[i]);
-            if (d < record) {
+            if (d < record && d < perception) {
                 record = d;
                 closet = i;
             }
@@ -108,10 +116,15 @@ var Vehicle = (function () {
         push();
         translate(this.position.x, this.position.y);
         rotate(angle);
+        strokeWeight(3);
         stroke(0, 255, 0);
-        line(0, 0, 0, -this.dna[0] * 20);
+        noFill();
+        line(0, 0, 0, -this.dna[0] * 25);
+        strokeWeight(2);
+        ellipse(0, 0, this.dna[2] * 2);
         stroke(255, 0, 0);
-        line(0, 0, 0, -this.dna[1] * 20);
+        line(0, 0, 0, -this.dna[1] * 25);
+        ellipse(0, 0, this.dna[3] * 2);
         var gr = color(0, 255, 0);
         var rd = color(255, 0, 0);
         var col = lerpColor(gr, rd, this.health);
@@ -124,6 +137,29 @@ var Vehicle = (function () {
         vertex(this.r, this.r * 2);
         endShape(CLOSE);
         pop();
+    };
+    Vehicle.prototype.boundaries = function () {
+        var d = 25;
+        var desired = null;
+        if (this.position.x < d) {
+            desired = createVector(this.maxspeed, this.velocity.y);
+        }
+        else if (this.position.x > width - d) {
+            desired = createVector(-this.maxspeed, this.velocity.y);
+        }
+        if (this.position.y < d) {
+            desired = createVector(this.velocity.x, this.maxspeed);
+        }
+        else if (this.position.y > height - d) {
+            desired = createVector(this.velocity.x, -this.maxspeed);
+        }
+        if (desired !== null) {
+            desired.normalize();
+            desired.mult(this.maxspeed);
+            var steer = p5.Vector.sub(desired, this.velocity);
+            steer.limit(this.maxforce);
+            this.applyForce(steer);
+        }
     };
     return Vehicle;
 }());
