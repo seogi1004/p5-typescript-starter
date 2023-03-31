@@ -1,95 +1,82 @@
-var ColorHelper = (function () {
-    function ColorHelper() {
+var Vehicle = (function () {
+    function Vehicle(x, y) {
+        this.pos = createVector(random(width), random(height));
+        this.target = createVector(x, y);
+        this.vel = p5.Vector.random2D();
+        this.acc = createVector();
+        this.r = 8;
+        this.maxspeed = 10;
+        this.maxforce = 1;
     }
-    ColorHelper.getColorVector = function (c) {
-        return createVector(red(c), green(c), blue(c));
+    Vehicle.prototype.behaviors = function () {
+        var arrive = this.arrive(this.target);
+        var mouse = createVector(mouseX, mouseY);
+        var flee = this.flee(mouse);
+        arrive.mult(1);
+        flee.mult(5);
+        this.applyForce(arrive);
+        this.applyForce(flee);
     };
-    ColorHelper.rainbowColorBase = function () {
-        return [
-            color('red'),
-            color('orange'),
-            color('yellow'),
-            color('green'),
-            color(38, 58, 150),
-            color('indigo'),
-            color('violet')
-        ];
+    Vehicle.prototype.applyForce = function (f) {
+        this.acc.add(f);
     };
-    ColorHelper.getColorsArray = function (total, baseColorArray) {
-        var _this = this;
-        if (baseColorArray === void 0) { baseColorArray = null; }
-        if (baseColorArray == null) {
-            baseColorArray = ColorHelper.rainbowColorBase();
+    Vehicle.prototype.update = function () {
+        this.pos.add(this.vel);
+        this.vel.add(this.acc);
+        this.acc.mult(0);
+    };
+    Vehicle.prototype.show = function () {
+        stroke(255);
+        strokeWeight(8);
+        point(this.pos.x, this.pos.y);
+    };
+    Vehicle.prototype.arrive = function (target) {
+        var desired = p5.Vector.sub(target, this.pos);
+        var d = desired.mag();
+        var speed = this.maxspeed;
+        if (d < 100) {
+            speed = map(d, 0, 100, 0, this.maxspeed);
         }
-        var rainbowColors = baseColorArray.map(function (x) { return _this.getColorVector(x); });
-        ;
-        var colours = new Array();
-        for (var i = 0; i < total; i++) {
-            var colorPosition = i / total;
-            var scaledColorPosition = colorPosition * (rainbowColors.length - 1);
-            var colorIndex = Math.floor(scaledColorPosition);
-            var colorPercentage = scaledColorPosition - colorIndex;
-            var nameColor = this.getColorByPercentage(rainbowColors[colorIndex], rainbowColors[colorIndex + 1], colorPercentage);
-            colours.push(color(nameColor.x, nameColor.y, nameColor.z));
+        desired.setMag(speed);
+        var steer = p5.Vector.sub(desired, this.vel);
+        steer.limit(this.maxforce);
+        return steer;
+    };
+    Vehicle.prototype.flee = function (target) {
+        var desired = p5.Vector.sub(target, this.pos);
+        var d = desired.mag();
+        if (d < 50) {
+            desired.setMag(this.maxspeed);
+            desired.mult(-1);
+            var steer = p5.Vector.sub(desired, this.vel);
+            steer.limit(this.maxforce);
+            return steer;
         }
-        return colours;
+        else {
+            return createVector(0, 0);
+        }
     };
-    ColorHelper.getColorByPercentage = function (firstColor, secondColor, percentage) {
-        var firstColorCopy = firstColor.copy();
-        var secondColorCopy = secondColor.copy();
-        var deltaColor = secondColorCopy.sub(firstColorCopy);
-        var scaledDeltaColor = deltaColor.mult(percentage);
-        return firstColorCopy.add(scaledDeltaColor);
-    };
-    return ColorHelper;
+    return Vehicle;
 }());
-var PolygonHelper = (function () {
-    function PolygonHelper() {
-    }
-    PolygonHelper.draw = function (numberOfSides, width) {
-        push();
-        var angle = TWO_PI / numberOfSides;
-        var radius = width / 2;
-        beginShape();
-        for (var a = 0; a < TWO_PI; a += angle) {
-            var sx = cos(a) * radius;
-            var sy = sin(a) * radius;
-            vertex(sx, sy);
-        }
-        endShape(CLOSE);
-        pop();
-    };
-    return PolygonHelper;
-}());
-var numberOfShapesControl;
-function setup() {
-    console.log('🚀 - Setup initialized - P5 is running');
-    createCanvas(windowWidth, windowHeight);
-    rectMode(CENTER).noFill().frameRate(30);
-    numberOfShapesControl = createSlider(1, 30, 15, 1)
-        .position(10, 10)
-        .style('width', '100px');
+var font;
+var vehicles = [];
+function preload() {
+    font = loadFont('./build/AvenirNextLTPro-Demi.otf');
 }
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight);
+function setup() {
+    createCanvas(600, 300);
+    var points = font.textToPoints('train', 100, 200, 192);
+    points.forEach(function (pt) {
+        var vehicle = new Vehicle(pt.x, pt.y);
+        vehicles.push(vehicle);
+    });
 }
 function draw() {
-    background(0);
-    translate(width / 2, height / 2);
-    var numberOfShapes = numberOfShapesControl.value();
-    var colours = ColorHelper.getColorsArray(numberOfShapes);
-    var speed = (frameCount / (numberOfShapes * 30)) * 2;
-    for (var i = 0; i < numberOfShapes; i++) {
-        push();
-        var lineWidth = 8;
-        var spin = speed * (numberOfShapes - i);
-        var numberOfSides = 3 + i;
-        var width_1 = 40 * i;
-        strokeWeight(lineWidth);
-        stroke(colours[i]);
-        rotate(spin);
-        PolygonHelper.draw(numberOfSides, width_1);
-        pop();
-    }
+    background(51);
+    vehicles.forEach(function (v) {
+        v.behaviors();
+        v.update();
+        v.show();
+    });
 }
 //# sourceMappingURL=build.js.map

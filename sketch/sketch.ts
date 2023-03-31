@@ -1,48 +1,30 @@
-// GLOBAL VARS & TYPES
-let numberOfShapesControl: p5.Element
+let font: p5.Font;
+let vehicles: Vehicle[] = [];
 
-// P5 WILL AUTOMATICALLY USE GLOBAL MODE IF A DRAW() FUNCTION IS DEFINED
+function preload() {
+    font = loadFont('./build/AvenirNextLTPro-Demi.otf')
+}
+
 function setup() {
-    console.log('🚀 - Setup initialized - P5 is running')
+    createCanvas(600, 300);
+    // textFont(font);
+    // textSize(192);
+    // fill(255);
+    // noStroke();
+    // text('train', 100, 200);
 
-    createCanvas(windowWidth, windowHeight)
-    rectMode(CENTER).noFill().frameRate(30)
-    // NUMBER OF SHAPES SLIDER
-    numberOfShapesControl = createSlider(1, 30, 15, 1)
-        .position(10, 10)
-        .style('width', '100px')
+    let points = font.textToPoints('train', 100, 200, 192);
+    points.forEach(pt => {
+        const vehicle = new Vehicle(pt.x, pt.y);
+        vehicles.push(vehicle);
+    })
 }
 
-// p5 WILL AUTO RUN THIS FUNCTION IF THE BROWSER WINDOW SIZE CHANGES
-function windowResized() {
-    resizeCanvas(windowWidth, windowHeight)
-}
-
-// p5 WILL HANDLE REQUESTING ANIMATION FRAMES FROM THE BROWSER AND WIL RUN DRAW() EACH ANIMATION FROME
 function draw() {
-    // CLEAR BACKGROUND
-    background(0)
-
-    // CENTER OF SCREEN
-    translate(width / 2, height / 2)
-
-    const numberOfShapes = <number>numberOfShapesControl.value()
-    const colours = ColorHelper.getColorsArray(numberOfShapes)
-
-    // CONSISTENT SPEED REGARDLESS OF FRAMERATE
-    const speed = (frameCount / (numberOfShapes * 30)) * 2
-
-    // DRAW ALL SHAPES
-    for (var i = 0; i < numberOfShapes; i++) {
-        push()
-        const lineWidth = 8
-        const spin = speed * (numberOfShapes - i)
-        const numberOfSides = 3 + i
-        const width = 40 * i
-        strokeWeight(lineWidth)
-        stroke(colours[i])
-        rotate(spin)
-        PolygonHelper.draw(numberOfSides, width)
-        pop()
-    }
+    background(51)
+    vehicles.forEach(v => {
+        v.behaviors();
+        v.update();
+        v.show();
+    });
 }
